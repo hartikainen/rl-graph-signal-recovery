@@ -1,15 +1,18 @@
 """Plot partitioned networkx graph.
 Plotting logic taken from https://stackoverflow.com/a/43541777
 """
+from collection import defaultdict
+
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
 
 def draw_partitioned_graph(g):
-  partition_index = {}
-  for idx, partition in enumerate(g.graph["partition"]):
-    for node in partition:
-      partition_index[node] = idx
+  partition_index = {
+    node: idx
+    for idx, partition in enumerate(g.graph["partition"])
+    for node in partition
+  }
 
   pos = community_layout(g, partition_index)
   nx.draw(g,
@@ -63,16 +66,13 @@ def _position_communities(g, partition, **kwargs):
   return pos
 
 def _find_between_community_edges(g, partition):
-  edges = dict()
+  edges = defaultdict(list)
 
   for (ni, nj) in g.edges():
     ci = partition[ni]
     cj = partition[nj]
     if ci != cj:
-      try:
-        edges[(ci, cj)] += [(ni, nj)]
-      except KeyError:
-        edges[(ci, cj)] = [(ni, nj)]
+      edges[(ci, cj)] += [(ni, nj)]
 
   return edges
 
@@ -80,12 +80,9 @@ def _position_nodes(g, partition, **kwargs):
   """Positions nodes within communities.
   """
 
-  communities = dict()
+  communities = defaultdict(list)
   for node, community in partition.items():
-    try:
-      communities[community] += [node]
-    except KeyError:
-      communities[community] = [node]
+    communities[community] += [node]
 
   pos = dict()
   for ci, nodes in communities.items():
