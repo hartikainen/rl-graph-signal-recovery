@@ -62,6 +62,8 @@ def main(args):
   results_file = args.get("results_file")
   if results_file is not None:
     dump_results(results, results_file)
+  else:
+    pprint(results)
 
 if __name__ == "__main__":
   args = parse_args()
