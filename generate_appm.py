@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import networkx as nx
 
 from utils import dump_graph
+from visualization import draw_partitioned_graph
 
 def parse_args():
   parser = argparse.ArgumentParser(
@@ -52,8 +53,7 @@ def main():
   appm = nx.random_partition_graph(sizes, p_in, p_out, seed=seed)
 
   if visualize:
-    nx.draw(appm)
-    plt.show()
+    draw_partitioned_graph(appm)
 
   out_path = out_path or "./data/out.json"
   if out_path.strip(".").strip("/").split("/")[0] == "data":
