@@ -1,3 +1,4 @@
+import json
 import argparse
 from pprint import pprint
 from distutils.util import strtobool
@@ -43,6 +44,13 @@ def parse_args():
                             " i.e. algorithms.recovery.{0}."
                             "".format(DEFAULT_RECOVERY_METHOD)))
 
+  parser.add_argument("--recovery-params",
+                      type=json.loads,
+                      default={},
+                      help=("Recovery algorithms parameters passed in json"
+                            " format. These are passed directly to the"
+                            " recovery method constructor"))
+
   parser.add_argument("--results-file", default=None, type=str,
                       help="File to write results to")
 
@@ -53,11 +61,14 @@ def parse_args():
 def main(args):
   print(args)
   recovery_method_name = args["recovery_method"]
+  recovery_params = args["recovery_params"]
   graph_file = args["graph_file"]
   sample_file = args["sample_file"]
 
   RecoveryMethodClass = getattr(recovery, recovery_method_name)
-  recovery_method = RecoveryMethodClass(graph_file, sample_file)
+  recovery_method = RecoveryMethodClass(graph_file,
+                                        sample_file,
+                                        recovery_params)
 
   results = args.copy()
 
@@ -68,6 +79,8 @@ def main(args):
   results_file = args.get("results_file")
   if results_file is not None:
     dump_results(results, results_file)
+  else:
+    pprint(results)
 
 if __name__ == "__main__":
   args = parse_args()
