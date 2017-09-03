@@ -1,11 +1,14 @@
+import pathlib
 import argparse
+
 import matplotlib.pyplot as plt
 import networkx as nx
+
 from utils import dump_graph
 
 def parse_args():
   parser = argparse.ArgumentParser(
-      description="Creates an Assortative Planted Partition Model")
+    description="Creates an Assortative Planted Partition Model")
 
   parser.add_argument("--sizes",
                       type=int,
@@ -52,7 +55,9 @@ def main():
     nx.draw(appm)
     plt.show()
 
-  out_path = out_path if out_path is not None else "out.json"
+  out_path = out_path or "./data/out.json"
+  if out_path.strip(".").strip("/").split("/")[0] == "data":
+    pathlib.Path('./data').mkdir(parents=True, exist_ok=True)
   dump_graph(appm, out_path)
 
 if __name__ == "__main__":
