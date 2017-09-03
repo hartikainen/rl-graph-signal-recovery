@@ -1,7 +1,7 @@
 """Plot partitioned networkx graph.
 Plotting logic taken from https://stackoverflow.com/a/43541777
 """
-from collection import defaultdict
+from collections import defaultdict
 
 import matplotlib.pyplot as plt
 import networkx as nx
