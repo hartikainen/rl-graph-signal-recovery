@@ -1,3 +1,4 @@
+import json
 import argparse
 from pprint import pprint
 from distutils.util import strtobool
@@ -38,6 +39,13 @@ def parse_args():
                             " i.e. algorithms.sampling.{0}."
                             "".format(DEFAULT_SAMPLING_METHOD)))
 
+  parser.add_argument("--sampling-params",
+                      type=json.loads,
+                      default={},
+                      help=("Sampling algorithms parameters passed in json"
+                            " format. These are passed directly to the"
+                            " sampling method constructor"))
+
   parser.add_argument("--results-file", default=None, type=str,
                       help="File to write results to")
 
@@ -48,10 +56,11 @@ def parse_args():
 def main(args):
   print(args)
   sampling_method_name = args["sampling_method"]
+  sampling_params = args["sampling_params"]
   graph_file = args["graph_file"]
 
   SamplingMethodClass = getattr(sampling, sampling_method_name)
-  sampling_method = SamplingMethodClass(graph_file)
+  sampling_method = SamplingMethodClass(graph_file, sampling_params)
 
   results = args.copy()
 
