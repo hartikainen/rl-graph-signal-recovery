@@ -5,7 +5,7 @@ from datetime import datetime
 
 import numpy as np
 
-import algorithms
+from algorithms import recovery
 from utils import dump_results
 
 def bool_type(x):
@@ -24,18 +24,23 @@ def parse_args():
                       default=False,
                       help="Verbose")
 
-  parser.add_argument("-g", "--graph-file",
+  parser.add_argument("--graph-file",
                       type=str,
                       required=True,
-                      help="Path to the graph file to be loaded")
+                      help="Path to the graph file to be loaded for recovery")
 
-  parser.add_argument("-r", "--recovery-method",
+  parser.add_argument("--sample-file",
+                      type=str,
+                      required=True,
+                      help="Path to the sample file to be loaded for recovery")
+
+  parser.add_argument("--recovery-method",
                       type=str,
                       default=DEFAULT_RECOVERY_METHOD,
-                      help=("Path to the method used for the graph recovery."
-                            "The recovery method must be importable from"
-                            "algorithms module. Defaults to '{0}', i.e."
-                            "algorithms.{0}."
+                      help=("Name of the class used for graph recovery. The"
+                            " recovery class must be importable from"
+                            "algorithms.recovery module. Defaults to '{0}',"
+                            " i.e. algorithms.recovery.{0}."
                             "".format(DEFAULT_RECOVERY_METHOD)))
 
   parser.add_argument("--results-file", default=None, type=str,
@@ -49,9 +54,10 @@ def main(args):
   print(args)
   recovery_method_name = args["recovery_method"]
   graph_file = args["graph_file"]
+  sample_file = args["sample_file"]
 
-  RecoveryMethodClass = getattr(algorithms, recovery_method_name)
-  recovery_method = RecoveryMethodClass(graph_file)
+  RecoveryMethodClass = getattr(recovery, recovery_method_name)
+  recovery_method = RecoveryMethodClass(graph_file, sample_file)
 
   results = args.copy()
 
