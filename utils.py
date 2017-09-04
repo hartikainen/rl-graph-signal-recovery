@@ -31,3 +31,9 @@ def dump_results(results, filepath):
   # TODO: might need to write these in pickle
   with open(filepath, "w") as f:
     json.dump(results, f, sort_keys=True, **DEFAULT_JSON_ARGS)
+
+def load_samples(load_path):
+  with open(load_path, 'r') as f:
+    data = json.load(f)
+    sampling_set = data['sampling_set']
+  return sampling_set

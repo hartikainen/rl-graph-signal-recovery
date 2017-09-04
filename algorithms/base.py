@@ -1,6 +1,7 @@
 import json
 
 from utils import load_graph
+from utils import load_samples
 
 class GraphSamplingAlgorithm(object):
   def __init__(self, graph_file):
@@ -30,8 +31,7 @@ class GraphRecoveryAlgorithm(object):
 
   def import_samples(self):
     # TODO: what's the format for this?
-    with open(self.sample_file, 'r') as f:
-      self.samples = json.load(f)
+    self.samples = load_samples(self.sample_file)
 
   def run(self):
     raise NotImplementedError("{} must implement run method"
