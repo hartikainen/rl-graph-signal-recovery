@@ -34,7 +34,7 @@ def community_layout(g, partition):
     pos: dict mapping int node -> (float x, float y) node positions
   """
 
-  pos_communities = _position_communities(g, partition, scale=3.)
+  pos_communities = _position_communities(g, partition, scale=3., k=1.5)
   pos_nodes = _position_nodes(g, partition, scale=1.)
 
   # combine positions
