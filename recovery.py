@@ -16,8 +16,8 @@ DEFAULT_RECOVERY_METHOD = "SparseLabelPropagation"
 
 def parse_args():
   parser = argparse.ArgumentParser(
-    description=("An information-theoretic approach to"
-                 " curiosity-driven reinforcement learning"))
+    description=("Graph Recovery: Script to run graph recovery based on graph"
+                 " and given sample set of nodes"))
 
 
   parser.add_argument("-v", "--verbose",

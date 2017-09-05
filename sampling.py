@@ -16,8 +16,8 @@ DEFAULT_SAMPLING_METHOD = "RandomWalkSampling"
 
 def parse_args():
   parser = argparse.ArgumentParser(
-    description=("An information-theoretic approach to"
-                 " curiosity-driven reinforcement learning"))
+    description=("Graph Sampling: Script to generate sampling set from a"
+                 "signal graph"))
 
 
   parser.add_argument("-v", "--verbose",
