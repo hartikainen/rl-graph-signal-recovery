@@ -45,14 +45,14 @@ class SparseLabelPropagation(GraphRecoveryAlgorithm):
     # TODO: check results, error to full signal doesn't look promising
     for i in range(number_of_iterations):
       edge_signal = y + 0.5 * sqrt_max_d * np.dot(D, z)
-      y = edge_signal / np.max([1.0, np.linalg.norm(edge_signal)])
+      y = edge_signal / np.max([np.ones(y_shape), edge_signal], axis=0)
       x1 = x0 - 0.5 * sqrt_max_d * np.dot(D.T, y)
       x1[samples] = signal_samples
       z = 2 * x1 - x0
       x_hat += x1
       x0 = x1
 
-    x_hat *= 1 / (i + 1)
+    x_hat *= 1 / number_of_iterations
 
     result = {'signal': x_hat}
     return result
