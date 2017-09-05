@@ -7,7 +7,8 @@ import numpy as np
 import networkx as nx
 
 DEFAULT_RECOVERY_PARAMS = {
-  "number_of_iterations": 2000,
+  "number_of_iterations": 200,
+  "compute_error": True,
 }
 
 class SparseLabelPropagation(GraphRecoveryAlgorithm):
@@ -20,11 +21,12 @@ class SparseLabelPropagation(GraphRecoveryAlgorithm):
   def run(self):
     graph = self.graph
     # TODO: Rename samples & consider sample source: samples as used here is a
-    # confusing name, as it refers to the sampling indices. The sample values
-    # are stored in the graph. Should we support fetching samples from some
-    # other source than the graph?
+    # confusing name, as the variable contains the sampling indices. The sample
+    # values are stored in the graph. Should we support fetching samples from
+    # some other source than the graph?
     samples = self.samples
 
+    compute_error = DEFAULT_RECOVERY_PARAMS['compute_error']
     number_of_iterations = DEFAULT_RECOVERY_PARAMS['number_of_iterations']
     number_of_nodes = graph.number_of_nodes()
     number_of_edges = graph.number_of_edges()
@@ -32,27 +34,36 @@ class SparseLabelPropagation(GraphRecoveryAlgorithm):
     y_shape = (number_of_edges, 1)
 
     # TODO: would it make sense to use sparse D?
-    D = np.array(nx.incidence_matrix(graph).todense()).T
+    D = np.array(nx.incidence_matrix(graph, oriented=True).todense()).T
     z = np.zeros(x_shape)
     x0 = np.zeros(x_shape)
     x1 = np.zeros(x_shape)
-    x_hat = np.zeros(x_shape)
+    x_tilde = np.zeros(x_shape)
     y = np.zeros(y_shape)
 
     sqrt_max_d = np.sqrt(np.max(list(graph.degree().values())))
-    signal_samples = np.array([[graph.node[idx]['value']] for idx in samples])
+    signal_samples = np.array([[graph.node[idx]['value']]
+                               for idx in samples], dtype=np.float32)
 
-    # TODO: check results, error to full signal doesn't look promising
+    # TODO: fix nodes with degree == 0
+    degrees = 1.0 / np.array(list(graph.degree().values()), dtype=np.float32)
+    gamma = np.diag(degrees)
+
     for i in range(number_of_iterations):
-      edge_signal = y + 0.5 * sqrt_max_d * np.dot(D, z)
-      y = edge_signal / np.max([np.ones(y_shape), edge_signal], axis=0)
-      x1 = x0 - 0.5 * sqrt_max_d * np.dot(D.T, y)
+      x1 = x0 - np.dot(gamma, np.dot(D.T, y))
       x1[samples] = signal_samples
-      z = 2 * x1 - x0
-      x_hat += x1
+      x_tilde = 2 * x1 - x0
+      edge_signal = y + 0.5 * np.dot(D, x_tilde)
+      y = edge_signal / np.max([np.ones(y_shape), edge_signal], axis=0)
       x0 = x1
 
-    x_hat *= 1 / number_of_iterations
+    result = {'signal': x_tilde}
+    if compute_error:
+      x_tilde_ = np.squeeze(x_tilde)
+      full_signal = np.array([graph.node[node]['value']
+                              for node in graph.nodes_iter()])
+      error = (np.linalg.norm(x_tilde_ - full_signal, 2) ** 2
+               / np.linalg.norm(full_signal, 2) ** 2)
+      result['error'] = error
 
-    result = {'signal': x_hat}
     return result
