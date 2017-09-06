@@ -16,7 +16,7 @@ def sparse_label_propagation(graph, sample_idx, params):
   # confusing name, as the variable contains the sampling indices. The sample
   # values are stored in the graph. Should we support fetching samples from
   # some other source than the graph?
-  params = dict(DEFAULT_RECOVERY_PARAMS **params)
+  params = dict(DEFAULT_RECOVERY_PARAMS, **params)
   compute_error = params['compute_error']
   number_of_iterations = params['number_of_iterations']
   number_of_nodes = graph.number_of_nodes()
