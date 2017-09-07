@@ -11,12 +11,12 @@ DEFAULT_RECOVERY_PARAMS = {
   "compute_error": True,
 }
 
-def sparse_label_propagation(graph, sample_idx, params):
+def sparse_label_propagation(graph, sample_idx, params=None):
   # TODO: Rename samples & consider sample source: samples as used here is a
   # confusing name, as the variable contains the sampling indices. The sample
   # values are stored in the graph. Should we support fetching samples from
   # some other source than the graph?
-  params = dict(DEFAULT_RECOVERY_PARAMS, **params)
+  params = dict(DEFAULT_RECOVERY_PARAMS, **params if params is not None else {})
   compute_error = params['compute_error']
   number_of_iterations = params['number_of_iterations']
   number_of_nodes = graph.number_of_nodes()
@@ -48,16 +48,7 @@ def sparse_label_propagation(graph, sample_idx, params):
     y = edge_signal / np.max([np.ones(y_shape), edge_signal], axis=0)
     x0 = x1
 
-  result = {'signal': x_tilde}
-  if compute_error:
-    x_tilde_ = np.squeeze(x_tilde)
-    full_signal = np.array([graph.node[node]['value']
-                            for node in graph.nodes_iter()])
-    error = (np.linalg.norm(x_tilde_ - full_signal, 2) ** 2
-             / np.linalg.norm(full_signal, 2) ** 2)
-    result['error'] = error
-
-  return result
+  return x_tilde
 
 class SparseLabelPropagation(GraphRecoveryAlgorithm):
   def __init__(self, graph_file, sample_file, recovery_params):
