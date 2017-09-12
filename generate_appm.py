@@ -45,6 +45,20 @@ def parse_args():
                       default=None,
                       help="Save graph output to out_path")
 
+  parser.add_argument("--cull_disconnected",
+                      action="store_true",
+                      dest="cull_disconnected",
+                      help="Cull nodes that are not connected to the main"
+                           " graph")
+
+  parser.add_argument("--no_cull_disconnected",
+                      action="store_false",
+                      dest="cull_disconnected",
+                      help="Use to leave nodes that are not connected to the"
+                           " main graph")
+
+  parser.set_defaults(cull_disconnected=True)
+
   args = vars(parser.parse_args())
   return args
 
@@ -56,15 +70,26 @@ def add_signal_to_graph(graph):
     for node_index in partition:
       graph.node[node_index]['value'] = cluster_value
 
+def cull_disconnected_nodes(graph):
+  connected_components = [c for c in sorted(nx.connected_components(graph),
+                                            key=len,
+                                            reverse=True)]
+  for component in connected_components[1:]:
+    graph.remove_nodes_from(component)
+
 def main(args):
   sizes, p_in, p_out, seed = (args["sizes"], args["p_in"], args["p_out"],
                               args["seed"])
-  visualize, out_path = args["visualize"], args["out_path"]
+  visualize, out_path, cull_disconnected = (
+      args["visualize"], args["out_path"], args['cull_disconnected'])
 
   np.random.seed(seed)
 
   appm = nx.random_partition_graph(sizes, p_in, p_out, seed=seed)
   add_signal_to_graph(appm)
+
+  if cull_disconnected:
+    cull_disconnected_nodes(appm)
 
   if visualize:
     draw_partitioned_graph(appm)
@@ -76,4 +101,4 @@ def main(args):
 
 if __name__ == "__main__":
   args = parse_args()
-  main()
+  main(args)
