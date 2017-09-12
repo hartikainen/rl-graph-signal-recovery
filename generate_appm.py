@@ -56,8 +56,7 @@ def add_signal_to_graph(graph):
     for node_index in partition:
       graph.node[node_index]['value'] = cluster_value
 
-def main():
-  args = parse_args()
+def main(args):
   sizes, p_in, p_out, seed = (args["sizes"], args["p_in"], args["p_out"],
                               args["seed"])
   visualize, out_path = args["visualize"], args["out_path"]
@@ -76,4 +75,5 @@ def main():
   dump_graph(appm, out_path)
 
 if __name__ == "__main__":
+  args = parse_args()
   main()
