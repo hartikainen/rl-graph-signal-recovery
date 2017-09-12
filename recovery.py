@@ -80,7 +80,6 @@ def main(args):
     "nmse": nmse(graph, x_hat)
   })
 
-
   results_file = args.get("results_file")
   if results_file is not None:
     dump_results(results, results_file)
