@@ -1,3 +1,4 @@
+import re
 import glob
 import json
 import argparse
@@ -9,8 +10,9 @@ from itertools import product
 import numpy as np
 
 from utils import dump_results
-import sampling
 import generate_appm
+import sampling
+import recovery
 
 def bool_type(x):
   return bool(strtobool(x))
@@ -20,10 +22,7 @@ DEFAULT_SAMPLING_METHOD = "RandomWalkSampling"
 def parse_graph_generate_args():
   parser = argparse.ArgumentParser("Experiment 1: Graph generation")
 
-  parser.add_argument("--seed",
-                      type=int,
-                      default=None,
-                      help="Random seed")
+  parser.add_argument("--seed", type=int, default=None, help="Random seed")
 
   parser.add_argument("--p",
                       type=float,
@@ -69,10 +68,7 @@ def parse_graph_generate_args():
 def parse_sampling_args():
   parser = argparse.ArgumentParser("Experiment 1: Graph sampling")
 
-  parser.add_argument("--seed",
-                      type=int,
-                      default=None,
-                      help="Random seed")
+  parser.add_argument("--seed", type=int, default=None, help="Random seed")
 
   parser.add_argument("--Ls",
                       type=int,
@@ -98,14 +94,14 @@ def parse_sampling_args():
                       default="./data/experiment1/graphs/*.json",
                       help=("Run experiment for the graphs matching the"
                             " file pattern. The pattern is passed to glob.glob"
-                            "function"))
+                            " function"))
 
   parser.add_argument("--sampling_method",
                       type=str,
                       default=sampling.DEFAULT_SAMPLING_METHOD,
                       help=("Name of the class used for graph sampling. The"
                             " sampling class must be importable from"
-                            "algorithms.sampling module. Defaults to '{0}',"
+                            " algorithms.sampling module. Defaults to '{0}',"
                             " i.e. algorithms.sampling.{0}."
                             "".format(sampling.DEFAULT_SAMPLING_METHOD)))
 
@@ -122,8 +118,36 @@ def parse_sampling_args():
 
 
 def parse_recovery_args():
-  # TODO: implement this
-  pass
+  parser = argparse.ArgumentParser("Experiment 1: Graph recovery")
+
+  parser.add_argument("--seed", type=int, default=None, help="Random seed")
+
+  parser.add_argument("--sample_file_pattern",
+                      type=str,
+                      default="./data/experiment1/samples/*.json",
+                      help=("Run recovery experiment for the graphs/samples"
+                            " matching the file pattern. The pattern is passed"
+                            " to glob.glob function"))
+
+  parser.add_argument("--recovery_method",
+                      type=str,
+                      default=recovery.DEFAULT_RECOVERY_METHOD,
+                      help=("Name of the class used for graph recovery. The"
+                            " recovery class must be importable from"
+                            "algorithms.recovery module. Defaults to '{0}',"
+                            " i.e. algorithms.recovery.{0}."
+                            "".format(recovery.DEFAULT_RECOVERY_METHOD)))
+
+  parser.add_argument("--results_base",
+                      default="./data/experiment1/recovery",
+                      type=str,
+                      help="Directory to write results to.")
+
+  args, unknown = parser.parse_known_args()
+
+  assert(len(unknown) <= 1)
+
+  return vars(args)
 
 
 ARGS_PARSERS = {
@@ -200,8 +224,39 @@ def run_sampling(args):
 
       sampling.main(sampling_args)
 
-def recovery(args):
-  pass
+def graph_filepath_from_sample_filepath(sample_filepath):
+  parts = sample_filepath.split("/")
+  graph_folder = "/".join(parts[:-1]).replace("samples", "graphs")
+  filename_match = re.search("(\d+-\d+)-(\d+.json)", sample_filepath)
+  graph_filename = filename_match.group(2)
+  graph_filepath = f"{graph_folder}/{graph_filename}"
+
+  return graph_filepath
+
+def run_recovery(args):
+  print("recovery")
+
+  recovery_args_base = {
+    "recovery_method": args["recovery_method"],
+  }
+
+  for sample_filepath in glob.glob(args["sample_file_pattern"]):
+    print("sample_filepath: ", sample_filepath)
+    # TODO: this is horrible way of handling the graphs and samples
+    graph_filepath = graph_filepath_from_sample_filepath(sample_filepath)
+
+    recovery_args = recovery_args_base.copy()
+    recovery_args.update({
+      "graph_file": graph_filepath,
+      "sample_file": sample_filepath,
+      "recovery_params": {},
+      "results_file": (f"{args['results_base']}"
+                       f"/{sample_filepath.split('/')[-1]}")
+    })
+
+    print(f"{recovery_args}")
+
+    recovery.main(recovery_args)
 
 def main(args):
   print(args)
@@ -212,25 +267,6 @@ def main(args):
     run_sampling(args)
   elif step == "recovery":
     run_recovery(args)
-  return
-  sampling_method_name = args["sampling_method"]
-  sampling_params = args["sampling_params"]
-  graph_file = args["graph_file"]
-
-  SamplingMethodClass = getattr(sampling, sampling_method_name)
-  sampling_method = SamplingMethodClass(graph_file, sampling_params)
-
-  results = args.copy()
-
-  run_results = sampling_method.run()
-
-  results.update(run_results)
-
-  results_file = args.get("results_file")
-  if results_file is not None:
-    dump_results(results, results_file)
-  else:
-    pprint(results)
 
 if __name__ == "__main__":
   args = parse_args()

@@ -19,3 +19,5 @@ def normalized_mean_squared_error(graph, x_hat):
   error = np.power(x_diff_norm, 2.0) / np.power(x_norm, 2.0)
 
   return error
+
+nmse = normalized_mean_squared_error

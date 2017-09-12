@@ -2,7 +2,6 @@
 
 See A. Jung "Sparse Label Propagation." for algorithm definition.
 """
-from algorithms.base import GraphRecoveryAlgorithm
 import numpy as np
 import networkx as nx
 
@@ -40,6 +39,7 @@ def sparse_label_propagation(graph, sample_idx, params=None):
   degrees = 1.0 / np.array(list(graph.degree().values()), dtype=np.float32)
   gamma = np.diag(degrees)
 
+  # TODO: should the stopping criterion be dependent of the error?
   for _ in range(number_of_iterations):
     x1 = x0 - np.dot(gamma, np.dot(D.T, y))
     x1[sample_idx] = signal_samples
@@ -50,9 +50,10 @@ def sparse_label_propagation(graph, sample_idx, params=None):
 
   return x_tilde
 
-class SparseLabelPropagation(GraphRecoveryAlgorithm):
-  def __init__(self, graph_file, sample_file, recovery_params):
-    super().__init__(graph_file, sample_file)
+class SparseLabelPropagation():
+  def __init__(self, graph, samples, recovery_params):
+    self.graph = graph
+    self.samples = samples
 
     self.recovery_params = DEFAULT_RECOVERY_PARAMS.copy()
     self.recovery_params.update(recovery_params)

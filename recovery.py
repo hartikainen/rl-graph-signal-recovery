@@ -7,7 +7,8 @@ from datetime import datetime
 import numpy as np
 
 from algorithms import recovery
-from utils import dump_results
+from utils import dump_results, load_graph, load_samples
+from graph_functions import nmse
 
 def bool_type(x):
   return bool(strtobool(x))
@@ -66,15 +67,19 @@ def main(args):
   sample_file = args["sample_file"]
 
   RecoveryMethodClass = getattr(recovery, recovery_method_name)
-  recovery_method = RecoveryMethodClass(graph_file,
-                                        sample_file,
-                                        recovery_params)
+  graph = load_graph(graph_file)
+  samples = load_samples(sample_file)
+  recovery_method = RecoveryMethodClass(graph, samples, recovery_params)
+
+  x_hat = recovery_method.run()
 
   results = args.copy()
 
-  run_results = recovery_method.run()
+  results.update({
+    "x_hat": x_hat,
+    "nmse": nmse(graph, x_hat)
+  })
 
-  results.update(run_results)
 
   results_file = args.get("results_file")
   if results_file is not None:

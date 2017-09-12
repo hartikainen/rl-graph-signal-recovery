@@ -29,10 +29,6 @@ class GraphRecoveryAlgorithm(object):
   def import_graph(self):
     self.graph = load_graph(self.graph_file)
 
-  def import_samples(self):
-    # TODO: what's the format for this?
-    self.samples = load_samples(self.sample_file)
-
   def run(self):
     raise NotImplementedError("{} must implement run method"
                               "".format(self.__class__.__name__))

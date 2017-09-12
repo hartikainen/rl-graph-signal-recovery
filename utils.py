@@ -1,5 +1,6 @@
 import json
 from networkx.readwrite import json_graph
+import numpy as np
 
 class ObjectEncoder(json.JSONEncoder):
   def default(self, obj):
@@ -7,6 +8,8 @@ class ObjectEncoder(json.JSONEncoder):
       return self.default(obj.to_json())
     if isinstance(obj, set):
       return list(obj)
+    if isinstance(obj, np.ndarray):
+      return obj.tolist()
     return json.JSONEncoder.default(self, obj)
 
 DEFAULT_JSON_ARGS = {
