@@ -94,6 +94,8 @@ def main(args):
   if visualize:
     draw_partitioned_graph(appm)
 
+  appm = nx.convert_node_labels_to_integers(appm)
+
   out_path = out_path or "./data/out.json"
   if out_path.strip(".").strip("/").split("/")[0] == "data":
     pathlib.Path('./data').mkdir(parents=True, exist_ok=True)
