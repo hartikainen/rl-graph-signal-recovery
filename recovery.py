@@ -41,7 +41,7 @@ def parse_args():
                       default=DEFAULT_RECOVERY_METHOD,
                       help=("Name of the class used for graph recovery. The"
                             " recovery class must be importable from"
-                            "algorithms.recovery module. Defaults to '{0}',"
+                            " algorithms.recovery module. Defaults to '{0}',"
                             " i.e. algorithms.recovery.{0}."
                             "".format(DEFAULT_RECOVERY_METHOD)))
 
