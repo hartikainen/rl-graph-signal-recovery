@@ -60,7 +60,8 @@ def parse_args():
   return args
 
 def main(args):
-  print(args)
+  if args.get('verbose', False):
+    print(args)
   recovery_method_name = args["recovery_method"]
   recovery_params = args["recovery_params"]
   graph_file = args["graph_file"]

@@ -221,7 +221,10 @@ def run_sampling(args):
 
   sampling_args_base = { "seed": args["seed"] }
 
-  for filename in glob.glob(args["graph_file_pattern"]):
+  num_files = len(glob.glob(args["graph_file_pattern"]))
+  for i, filename in enumerate(glob.glob(args["graph_file_pattern"])):
+    if i % 100 == 0:
+      print("sampling file {}/{}".format(i+1, num_files))
     for L, M in product(args["Ls"], args["Ms"]):
       if args.get('verbose', False):
         print("filename: ", filename)
@@ -261,7 +264,10 @@ def run_recovery(args):
 
   results = defaultdict(list)
 
-  for sample_filepath in glob.glob(args["sample_file_pattern"]):
+  num_files = len(glob.glob(args["sample_file_pattern"]))
+  for i, sample_filepath in enumerate(glob.glob(args["sample_file_pattern"])):
+    if i % 100 == 0:
+      print("recovering file {}/{}".format(i+1, num_files))
     if args.get('verbose', False):
       print("sample_filepath: ", sample_filepath)
     # TODO: this is horrible way of handling the graphs and samples

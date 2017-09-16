@@ -54,7 +54,9 @@ def parse_args():
   return args
 
 def main(args):
-  print(args)
+  if args.get('verbose', False):
+    print(args)
+
   sampling_method_name = args["sampling_method"]
   sampling_params = args["sampling_params"]
   graph_file = args["graph_file"]
