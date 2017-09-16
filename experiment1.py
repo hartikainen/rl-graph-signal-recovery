@@ -6,6 +6,8 @@ from pprint import pprint
 from distutils.util import strtobool
 from datetime import datetime
 from itertools import product
+from collections import defaultdict
+import pathlib
 
 import numpy as np
 
@@ -13,6 +15,10 @@ from utils import dump_results
 import generate_appm
 import sampling
 import recovery
+
+pathlib.Path('./data/experiment1/graphs').mkdir(parents=True, exist_ok=True)
+pathlib.Path('./data/experiment1/samples').mkdir(parents=True, exist_ok=True)
+pathlib.Path('./data/experiment1/recovery').mkdir(parents=True, exist_ok=True)
 
 def bool_type(x):
   return bool(strtobool(x))
@@ -54,14 +60,27 @@ def parse_graph_generate_args():
                       default=100,
                       help="Number of graphs to generate")
 
+  parser.add_argument("--cull_disconnected",
+                      action="store_true",
+                      dest="cull_disconnected",
+                      default=True,
+                      help="Cull nodes that are not connected to the main"
+                           " graph")
+
+  parser.add_argument("--no_cull_disconnected",
+                      action="store_false",
+                      dest="cull_disconnected",
+                      help="Use to leave nodes that are not connected to the"
+                           " main graph")
+
+  parser.set_defaults(cull_disconnected=True)
+
   parser.add_argument("--results_base",
                       default="./data/experiment1/graphs",
                       type=str,
                       help="Directory to write graphs to.")
 
   args, unknown = parser.parse_known_args()
-
-  assert(len(unknown) <= 1)
 
   return vars(args)
 
@@ -112,8 +131,6 @@ def parse_sampling_args():
 
   args, unknown = parser.parse_known_args()
 
-  assert(len(unknown) <= 1)
-
   return vars(args)
 
 
@@ -144,8 +161,6 @@ def parse_recovery_args():
                       help="Directory to write results to.")
 
   args, unknown = parser.parse_known_args()
-
-  assert(len(unknown) <= 1)
 
   return vars(args)
 
@@ -186,6 +201,7 @@ def run_graph_generate(args):
     "p_in": args["p"],
     "p_out": args["q"],
     "seed": args["seed"],
+    "cull_disconnected": args["cull_disconnected"],
     "visualize": False,
   }
   num_graphs = args["num_graphs"]
@@ -195,7 +211,8 @@ def run_graph_generate(args):
     generate_args = generate_args_base.copy()
     generate_args.update({"out_path": out_path})
 
-    print(f"{i}: {generate_args}")
+    if args.get('verbose', False):
+      print(f"{i}: {generate_args}")
 
     generate_appm.main(generate_args)
 
@@ -206,7 +223,8 @@ def run_sampling(args):
 
   for filename in glob.glob(args["graph_file_pattern"]):
     for L, M in product(args["Ls"], args["Ms"]):
-      print("filename: ", filename)
+      if args.get('verbose', False):
+        print("filename: ", filename)
 
       sampling_args = sampling_args_base.copy()
       sampling_args.update({
@@ -220,7 +238,8 @@ def run_sampling(args):
                          f"/{L}-{M}-{filename.split('/')[-1]}")
       })
 
-      print(f"{sampling_args}")
+      if args.get('verbose', False):
+        print(f"{sampling_args}")
 
       sampling.main(sampling_args)
 
@@ -240,8 +259,11 @@ def run_recovery(args):
     "recovery_method": args["recovery_method"],
   }
 
+  results = defaultdict(list)
+
   for sample_filepath in glob.glob(args["sample_file_pattern"]):
-    print("sample_filepath: ", sample_filepath)
+    if args.get('verbose', False):
+      print("sample_filepath: ", sample_filepath)
     # TODO: this is horrible way of handling the graphs and samples
     graph_filepath = graph_filepath_from_sample_filepath(sample_filepath)
 
@@ -250,13 +272,20 @@ def run_recovery(args):
       "graph_file": graph_filepath,
       "sample_file": sample_filepath,
       "recovery_params": {},
-      "results_file": (f"{args['results_base']}"
-                       f"/{sample_filepath.split('/')[-1]}")
+      # "results_file": (f"{args['results_base']}"
+      #                  f"/{sample_filepath.split('/')[-1]}")
     })
 
-    print(f"{recovery_args}")
+    if args.get('verbose', False):
+      print(f"{recovery_args}")
 
-    recovery.main(recovery_args)
+    result = recovery.main(recovery_args)
+    key = tuple(
+      int(x) for x in sample_filepath.split('/')[-1].split('-')[:-1]
+    )
+    results[key].append(result['nmse'])
+
+  from nose.tools import set_trace; set_trace()
 
 def main(args):
   print(args)

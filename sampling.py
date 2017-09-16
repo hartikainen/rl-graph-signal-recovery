@@ -69,10 +69,10 @@ def main(args):
   results.update(run_results)
 
   results_file = args.get("results_file")
-  if results_file is not None:
-    dump_results(results, results_file)
+  if results_file is None:
+    return results
   else:
-    pprint(results)
+    dump_results(results, results_file)
 
 if __name__ == "__main__":
   args = parse_args()
