@@ -1,1 +1,1 @@
-from algorithms.sampling.random_walk_sampling import RandomWalkSampling
+from .random_walk_sampling import RandomWalkSampling
