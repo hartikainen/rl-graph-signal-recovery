@@ -1,14 +1,42 @@
+from nose.tools import assert_equal
+
 from envs import GraphSampling2
 from utils import load_graph
 from algorithms.recovery import sparse_label_propagation
 from algorithms.sampling import RandomWalkSampling
+import generate_appm
 from graph_functions import normalized_mean_squared_error, total_variance
 
-graph = load_graph("./data/graphs/out2.json")
-random_walker = RandomWalkSampling("./data/graphs/out2.json")
-sampling_result = random_walker.run()
-sampling_set = sampling_result['sampling_set']
+def verify_nmse(test_case):
+  x, x_hat, expected_nmse = test_case
+  nmse = normalized_mean_squared_error(x, x_hat)
+  assert_equal(nmse, expected_nmse)
 
-recovered_graph = sparse_label_propagation(graph, list(sampling_set))
-nmse = normalized_mean_squared_error(graph, recovered_graph)
-tv = total_variance(graph, recovered_graph)
+def test_nmse():
+  # TODO: add some real data test cases, preferably in fixture file form
+  TEST_CASES = [
+    ([1,2,3,4,5], [2,3,4,5,6], 0.090909090909090925),
+    ([0,0], [0,0], 0),
+    ([0,0], [1,1], 0),
+    ([], [], 0),
+  ]
+
+  for test_case in TEST_CASES:
+    yield verify_nmse, test_case
+
+def verify_tv(test_case):
+  edges, signal, expected_tv = test_case
+  tv = total_variance(edges, signal)
+  assert_equal(tv, expected_tv)
+
+def test_total_variance():
+  # TODO: add some real data test cases, preferably in fixture file form
+  TEST_CASES = [
+    ([(0,1), (0,2)], [0.1,0.1,0.1], 0),
+    ([(0,1), (0,2)], [0.2,0.1,0.1], 0.2),
+    ([(0,1), (0,2)], [0.1,0.1,0.2], 0.1),
+    ([(0,1), (0,2)], [0.0,0.0,0.0], 0),
+  ]
+
+  for test_case in TEST_CASES:
+    yield verify_tv, test_case
