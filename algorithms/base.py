@@ -12,6 +12,8 @@ class GraphSamplingAlgorithm(object):
       self.graph = graph
     elif isinstance(graph, str):
       self.graph = load_graph(graph)
+    else:
+      raise ValueError("unexpected graph type: {}".format(type(graph)))
 
   def run(self):
     raise NotImplementedError("{} must implement run method"
@@ -25,11 +27,15 @@ class GraphRecoveryAlgorithm(object):
       self.graph = graph
     elif isinstance(graph, str):
       self.graph = load_graph(graph)
+    else:
+      raise ValueError("unexpected graph type: {}".format(type(graph)))
 
-    if isinstance(samples, dict):
+    if isinstance(samples, (list, tuple, set)):
       self.samples = samples
     elif isinstance(samples, str):
       self.samples = load_samples(samples)
+    else:
+      raise ValueError("unexpected samples type: {}".format(type(samples)))
 
   def run(self):
     raise NotImplementedError("{} must implement run method"
