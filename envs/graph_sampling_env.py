@@ -38,6 +38,7 @@ class GraphSampling(Env):
     self._current_node = 0
     self._current_edge_idx = 0
     self._clustering_coefficients = None
+    self._max_samples = 10
 
     self._seed()
     self.reset()
@@ -46,11 +47,14 @@ class GraphSampling(Env):
     self.np_random, seed = seeding.np_random(seed)
     return [seed]
 
-  def _reset(self):
-    self.sampling_set = set()
+  def _randomize_position(self):
     self._current_node = random.sample(self.graph.nodes(), 1)[0]
     self._current_edge_idx = np.random.randint(
         len(self.graph.neighbors(self._current_node)))
+
+  def _reset(self):
+    self.sampling_set = set()
+    self._randomize_position()
     self._clustering_coefficients = nx.clustering(self.graph)
     return self._get_observation()
 
@@ -89,6 +93,7 @@ class GraphSampling(Env):
     # actions: 0: sample 1: next edge 2: move
     if action == 0:
       self.sampling_set.add(self._current_node)
+      self._randomize_position()
     elif action == 1:
       self._current_edge_idx = ((self._current_edge_idx + 1)
                                 % self.graph.degree(self._current_node))
@@ -104,13 +109,15 @@ class GraphSampling(Env):
     reward = 0.0
     done = False
 
-    if action == 0 and len(self.sampling_set) > 0:
+    if action == 0 and len(self.sampling_set) > 0 and not done:
       x_hat = sparse_label_propagation(self.graph, list(self.sampling_set))
       lmbd = 1e-2 # TODO: make this parameter
       reward = np.sum([
         np.power(self.graph.node[i]['value'] - x_hat[i], 2.0)
         for i in self.sampling_set
       ]) + lmbd * total_variance(self.graph.edges(), x_hat)
+
+    done = (len(self.sampling_set) >= self._max_samples)
 
     return observation, reward, done, {}
 
