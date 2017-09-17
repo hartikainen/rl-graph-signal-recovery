@@ -92,7 +92,7 @@ class GraphSampling(Env):
       reward = np.sum([
         np.power(self.graph.node[i]['value'] - x_hat[i], 2.0)
         for i in self.sampling_set
-      ]) + lmbd * total_variance(self.graph, x_hat)
+      ]) + lmbd * total_variance(self.graph.edges(), x_hat)
 
     return observation, reward, done, {}
 
@@ -143,7 +143,7 @@ class GraphSampling2(Env):
     reward = np.sum([
       np.power(self.graph.node[i]['value'] - x_hat[i], 2.0)
       for i in self.sampling_set
-    ]) + lmbd * total_variance(self.graph, x_hat)
+    ]) + lmbd * total_variance(self.graph.edges(), x_hat)
 
     done = (num_samples > self.max_samples)
 
