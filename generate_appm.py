@@ -96,10 +96,12 @@ def main(args):
 
   appm = nx.convert_node_labels_to_integers(appm)
 
-  out_path = out_path or "./data/out.json"
-  if out_path.strip(".").strip("/").split("/")[0] == "data":
-    pathlib.Path('./data').mkdir(parents=True, exist_ok=True)
-  dump_graph(appm, out_path)
+  if out_path is not None:
+    if out_path.strip(".").strip("/").split("/")[0] == "data":
+      pathlib.Path('./data').mkdir(parents=True, exist_ok=True)
+    dump_graph(appm, out_path)
+  else:
+    return appm
 
 if __name__ == "__main__":
   args = parse_args()

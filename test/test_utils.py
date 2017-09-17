@@ -12,6 +12,7 @@ def test_dump_load_graph():
   utils.dump_graph(graph1, "./tmp/test_graph.json")
   graph2 = utils.load_graph("./tmp/test_graph.json")
 
+  # TODO: use nx.is_isomorphic?
   expected = json_graph.node_link_data(graph1)
   result = json_graph.node_link_data(graph2)
   assert_dict_equal(result, expected)

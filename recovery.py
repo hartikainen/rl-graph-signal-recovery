@@ -72,13 +72,14 @@ def main(args):
   samples = load_samples(sample_file)
   recovery_method = RecoveryMethodClass(graph, samples, recovery_params)
 
+  x = [graph.node[node]['value'] for node in graph.nodes_iter()]
   x_hat = recovery_method.run()
 
   results = args.copy()
 
   results.update({
     "x_hat": x_hat,
-    "nmse": nmse(graph, x_hat)
+    "nmse": nmse(x, x_hat)
   })
 
   results_file = args.get("results_file")

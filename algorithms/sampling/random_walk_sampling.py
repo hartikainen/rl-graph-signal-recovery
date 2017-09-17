@@ -7,8 +7,8 @@ DEFAULT_SAMPLING_PARAMS = {
 }
 
 class RandomWalkSampling(GraphSamplingAlgorithm):
-  def __init__(self, graph_file, sampling_params=None):
-    super().__init__(graph_file)
+  def __init__(self, graph, sampling_params=None):
+    super().__init__(graph)
 
     sampling_params = sampling_params or {}
 

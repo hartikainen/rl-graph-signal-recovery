@@ -5,6 +5,8 @@ See A. Jung "Sparse Label Propagation." for algorithm definition.
 import numpy as np
 import networkx as nx
 
+from algorithms.base import GraphRecoveryAlgorithm
+
 DEFAULT_RECOVERY_PARAMS = {
   "number_of_iterations": 200,
   "compute_error": True,
@@ -50,10 +52,9 @@ def sparse_label_propagation(graph, sample_idx, params=None):
 
   return x_tilde
 
-class SparseLabelPropagation():
+class SparseLabelPropagation(GraphRecoveryAlgorithm):
   def __init__(self, graph, samples, recovery_params):
-    self.graph = graph
-    self.samples = samples
+    super().__init__(graph, samples)
 
     self.recovery_params = DEFAULT_RECOVERY_PARAMS.copy()
     self.recovery_params.update(recovery_params)
