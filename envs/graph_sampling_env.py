@@ -12,6 +12,22 @@ import networkx as nx
 
 from algorithms.recovery import sparse_label_propagation
 from graph_functions import total_variance
+from utils import draw_geometrically
+import generate_appm
+
+
+def generate_graph_args():
+  graph_args = {
+    "seed": 1,
+    "sizes": [int(draw_geometrically(10, 50)) for _ in range(5)],
+    "p_in": np.random.rand() * 0.30,
+    "p_out": np.random.rand() * 0.05,
+    "out_path": None,
+    "visualize": False,
+    "cull_disconnected": True
+  }
+  return graph_args
+
 
 logger = logging.getLogger(__name__)
 
@@ -21,20 +37,19 @@ class GraphSampling(Env):
     'render.modes': ('human',),
   }
 
-  def __init__(self, nx_graph, max_samples=10):
-    self.graph = nx.convert_node_labels_to_integers(nx_graph)
-    num_nodes = nx_graph.number_of_nodes()
+  def __init__(self, max_samples=10):
+    self._generate_new_graph()
+    num_nodes = self.graph.number_of_nodes()
     self.sampling_set = set()
 
     # actions: 0: sample 1: next edge 2: move
     self.action_space = Discrete(3)
 
-    # observation: current node, number of edges from the current node, the
-    # currently selected edge, number of edges from the next node, ...
-    max_d = np.max(list(self.graph.degree().values()))
+    observation_max_value = np.iinfo(np.int32)
+
     self.observation_space = Box(
-        np.array([0,0,0,0]),
-        np.array([self.graph.number_of_nodes(), max_d, max_d, max_d]))
+        np.array([0] * 5),
+        np.array([observation_max_value] * 5))
     self._current_node = 0
     self._current_edge_idx = 0
     self._clustering_coefficients = None
@@ -42,6 +57,11 @@ class GraphSampling(Env):
 
     self._seed()
     self.reset()
+
+  def _generate_new_graph(self):
+    graph_args = generate_graph_args()
+    graph = generate_appm.main(graph_args)
+    self.graph = graph
 
   def _seed(self, seed=None):
     self.np_random, seed = seeding.np_random(seed)
@@ -53,6 +73,7 @@ class GraphSampling(Env):
         len(self.graph.neighbors(self._current_node)))
 
   def _reset(self):
+    self._generate_new_graph()
     self.sampling_set = set()
     self._randomize_position()
     self._clustering_coefficients = nx.clustering(self.graph)

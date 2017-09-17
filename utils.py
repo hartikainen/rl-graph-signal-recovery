@@ -40,3 +40,6 @@ def load_samples(load_path):
     data = json.load(f)
     sampling_set = data['sampling_set']
   return sampling_set
+
+def draw_geometrically(low, high):
+  return np.power(10, np.random.uniform(np.log10(low), np.log10(high)))
