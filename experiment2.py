@@ -1,12 +1,14 @@
 import numpy as np
 import tensorflow as tf
-
 from baselines import deepq
 from baselines.common import tf_util
 from baselines.common.schedules import LinearSchedule
 from baselines.deepq.replay_buffer import ReplayBuffer
 
+from algorithms.recovery import sparse_label_propagation
 from envs import GraphSamplingEnv
+
+from graph_functions import nmse
 
 def train_test_agent():
   M = 10
@@ -77,7 +79,17 @@ def train_test_agent():
           print("% time spent exploring", int(100 * exploration.value(t)))
 
 
-  from nose.tools import set_trace; set_trace()
+    observation, done = env.reset(), False
+    while not done:
+      action = act(observation[None], update_eps=exploration.value(t))[0]
+      observation, reward, done, _ = env.step(action)
+
+    graph = env.graph
+    x = [graph.node[i]['value'] for i in graph.nodes_iter()]
+    sampling_set = env.sampling_set
+    x_hat = sparse_label_propagation(graph, list(sampling_set))
+
+    print("nmse: {}".format(nmse(x, x_hat)))
 
 if __name__ == "__main__":
   train_test_agent()
