@@ -37,6 +37,7 @@ class GraphSampling(Env):
         np.array([self.graph.number_of_nodes(), max_d, max_d, max_d]))
     self._current_node = 0
     self._current_edge_idx = 0
+    self._clustering_coefficients = None
 
     self._seed()
     self.reset()
@@ -50,6 +51,7 @@ class GraphSampling(Env):
     self._current_node = random.sample(self.graph.nodes(), 1)[0]
     self._current_edge_idx = np.random.randint(
         len(self.graph.neighbors(self._current_node)))
+    self._clustering_coefficients = nx.clustering(self.graph)
     return self._get_observation()
 
   def _validate_action(self, action):
@@ -61,12 +63,27 @@ class GraphSampling(Env):
     return neighbors[self._current_edge_idx]
 
   def _get_observation(self):
-    num_edges = self.graph.degree(self._current_node)
-    num_next_edges = self.graph.degree()[self._get_next_node()]
-    return np.array((self._current_node,
-                     num_edges,
-                     self._current_edge_idx,
-                     num_next_edges))
+    neighbors = self.graph.neighbors(self._current_node)
+    neighborhood_coefficients = [
+        self._clustering_coefficients[i] for i in neighbors]
+    clustering_coefficients = [ 
+        self._clustering_coefficients[self._current_node],
+        self._clustering_coefficients[self._get_next_node()],
+        np.mean(neighborhood_coefficients),
+        np.max(neighborhood_coefficients),
+        np.min(neighborhood_coefficients)
+    ]
+    neighborhood_degrees = [
+        self.graph.degree(i) for i in neighbors]
+    degrees = [
+        self.graph.degree(self._current_node),
+        self.graph.degree(self._get_next_node()),
+        np.mean(neighborhood_degrees),
+        np.max(neighborhood_degrees),
+        np.min(neighborhood_degrees)
+    ]
+    return np.array((*clustering_coefficients,
+                     *degrees))
 
   def _do_action(self, action):
     # actions: 0: sample 1: next edge 2: move
@@ -77,6 +94,7 @@ class GraphSampling(Env):
                                 % self.graph.degree(self._current_node))
     elif action == 2:
       self._current_node = self._get_next_node()
+      self._current_edge_idx = 0
 
   def _step(self, action):
     self._validate_action(action)
