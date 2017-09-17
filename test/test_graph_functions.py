@@ -1,6 +1,5 @@
 from nose.tools import assert_equal
 
-from envs import GraphSampling2
 from utils import load_graph
 from algorithms.recovery import sparse_label_propagation
 from algorithms.sampling import RandomWalkSampling

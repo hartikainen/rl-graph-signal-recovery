@@ -1,1 +1,1 @@
-from .graph_sampling_env import GraphSampling, GraphSampling2
+from .graph_sampling_env import GraphSamplingEnv
