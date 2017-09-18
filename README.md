@@ -87,22 +87,74 @@ Random walk sampling as presented in [Random Walk Sampling for Big Data over
 Networks](https://arxiv.org/abs/1704.04799v1) is implemented in
 `algorithms/sampling/random_walk_sampling.py`. The results in the paper for
 signal recovery on generated appms with random walk sampling in can be
-reproduced by running `experiment1.py` like follows:
+reproduced by running `experiment1.py`, which consists of three steps: graph generation, sampling, and recovery. First, to generate the graphs:
 
 ```
-python ./experiment1.py --step=graph_generate --cluster_sizes 10 20 30 40 --p=0.3 --q=0.04 --num_graphs=10000 --results_base=./data/experiment1/graphs
-
-python ./experiment1.py --step=sampling --Ms 10 --Ls 20 40 80 160 320
-
-python ./experiment1.py --step=recovery
+python ./experiment1.py \
+       --step=graph_generate \
+       --cluster_sizes 10 20 30 40 \
+       --p=0.3 \
+       --q=0.04 \
+       --num_graphs=10000 \
+       --results_base="./data/experiment1/graphs"
 ```
 
-The following results were obtained:
+This will generate 10000 graphs consisting of 4 clusters with sizes 10, 20, 30, 40, respectively. The parameter p for assortative planted partition model (APPM), specifies the probability that two nodes i,j out of the same cluster are connected by an edge. Similarly, the parameter q for APPM, specifies the probability that two nodes i,j out of two different clusters are connected by an edge. The results are written in ./data/experiment1/graphs/M/<timestamp>.pk.
 
-Sampling Budget | Length of Walk | Mean NMSE   | Std NMSE
-----------------|----------------|-------------|-----------
-10              | 20             | 0.315172    | 0.24432588
-10              | 40             | 0.314349    | 0.24225918
-10              | 80             | 0.31593065  | 0.24468789
-10              | 160            | 0.31569943  | 0.24466505
-10              | 320            | 0.31578363  | 0.24517507
+Once we have graph data, we can run the sampling steps. To reproduce the results in [Random Walk Sampling for Big Data over Networks](https://arxiv.org/abs/1704.04799v1), we run the sampling script twice: once for fixed M and varying L, and once for fixed L and varying M:
+
+```
+python ./experiment1.py \
+       --step=sampling \
+       --sampling-method="RandomWalkSampling" \
+       --Ms 10 \
+       --Ls 10 20 40 80 160 \
+       --graphs_file_pattern="./data/experiment1/graphs/*.pk" \
+       --results_base="./data/experiment1/samples/L"
+
+python ./experiment1.py \
+       --step=sampling \
+       --sampling-method="RandomWalkSampling" \
+       --Ms 10 20 30 40 50 80 \
+       --Ls 10 \
+       --graphs_file_pattern="./data/experiment1/graphs/*.pk" \
+       --results_base="./data/experiment1/samples/M"
+```
+
+Both of the sampling runs generates samples for all the 10000 graphs generated, with sampling budget `M` and random walk length `L` taken as a cartesian product of `Ms` and `Ls`. The results are stored in folders `./data/experiment1/samples/L` and `./data/experiment1/samples/M` for varying L and M, respectively.
+
+Finally, we can run the graph recovery step using the samples and graphs generated in the last steps:
+
+```
+python ./experiment1.py \
+       --step=recovery \
+       --recovery_method="SparseLabelPropagation" \
+       --graphs_path="./data/experiment1/graphs" \
+       --samples_path="./data/experiment1/samples/M" \
+       --file_pattern="*.pk"
+
+python ./experiment1.py \
+       --step=recovery \
+       --recovery_method="SparseLabelPropagation" \
+       --graphs_path="./data/experiment1/graphs" \
+       --samples_path="./data/experiment1/samples/L" \
+       --file_pattern="*.pk"
+```
+
+The results for these runs are presented below:
+
+For fixed walk length L = 10 and variable sampling budget M:
+
+| ------------------ | --------- | --------- | --------- | --------- | --------- | --------- |
+| Sampling Budget M  |        10 |        20 |       30  |        40 |        50 |       80  |
+| Mean NMSE          | 0.3138841 | 0.3222148 | 0.3269344 | 0.3297995 | 0.3344529 | 0.3504395 |
+| Std NMSE           | 0.2475722 | 0.2428365 | 0.2404566 | 0.2392953 | 0.2424855 | 0.2539869 |
+
+
+For fixed sampling budget M = 10 and variable walk length L:
+
+
+| ------------- | --------- | --------- | --------- | --------- | --------- | --------- |
+| Walk Length L |        10 |        20 |       40  |        60 |        80 |       160 |
+| Mean NMSE     | 0.3140496 | 0.3133629 | 0.3126016 | 0.3114935 | 0.3142520 | 0.3121936 |
+| Std NMSE      | 0.2452169 | 0.2442613 | 0.2426025 | 0.2461425 | 0.2464687 | 0.2417617 |

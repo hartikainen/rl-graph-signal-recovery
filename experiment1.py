@@ -44,7 +44,7 @@ def parse_graph_generate_args():
   parser.add_argument("--q",
                       type=float,
                       default=5e-2,
-                      help=("Parameter p for assortative planted partition"
+                      help=("Parameter q for assortative planted partition"
                             " model (APPM), specifying the probability that"
                             " two nodes i,j out of two different clusters are"
                             " connected by an edge"))
