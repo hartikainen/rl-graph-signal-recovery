@@ -11,6 +11,17 @@ import numpy as np
 from utils import dump_graph
 from visualization import draw_partitioned_graph
 
+def get_uniform_signal(size):
+  return np.random.uniform(0, 1, [size])
+
+def get_integer_signal(size):
+  return np.random.random_integers(0, size, [size])
+
+signal_generators = {
+  'uniform': get_uniform_signal,
+  'integer': get_integer_signal,
+}
+
 def parse_args():
   parser = argparse.ArgumentParser(
     description="Creates an Assortative Planted Partition Model")
@@ -59,16 +70,24 @@ def parse_args():
 
   parser.set_defaults(cull_disconnected=True)
 
+  parser.add_argument("--generator_type",
+                      type=str,
+                      default="uniform",
+                      help="Type of signal generator to use for cluster"
+                           " values. Choose from"
+                           " {}".format(list(signal_generators.keys())))
+
   args = vars(parser.parse_args())
   return args
 
-def add_signal_to_graph(graph):
+
+def add_signal_to_graph(graph, signal):
   number_of_partitions = len(graph.graph["partition"])
-  cluster_values = np.random.uniform(0,1,[number_of_partitions])
   for cluster_value, partition in zip(
-      cluster_values, graph.graph["partition"]):
+      signal, graph.graph["partition"]):
     for node_index in partition:
       graph.node[node_index]['value'] = cluster_value
+
 
 def cull_disconnected_nodes(graph):
   connected_components = [c for c in sorted(nx.connected_components(graph),
@@ -77,16 +96,20 @@ def cull_disconnected_nodes(graph):
   for component in connected_components[1:]:
     graph.remove_nodes_from(component)
 
+
 def main(args):
-  sizes, p_in, p_out, seed = (args["sizes"], args["p_in"], args["p_out"],
-                              args["seed"])
+  (sizes, p_in, p_out, seed, generator_type) = (
+      args["sizes"], args["p_in"], args["p_out"], args["seed"],
+      args["generator_type"])
   visualize, out_path, cull_disconnected = (
       args["visualize"], args["out_path"], args['cull_disconnected'])
 
   np.random.seed(seed)
 
   appm = nx.random_partition_graph(sizes, p_in, p_out, seed=seed)
-  add_signal_to_graph(appm)
+  signal_generator = signal_generators[generator_type]
+  signal = signal_generator(len(args["sizes"]))
+  add_signal_to_graph(appm, signal)
 
   if cull_disconnected:
     cull_disconnected_nodes(appm)
