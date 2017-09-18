@@ -131,6 +131,7 @@ python ./experiment1.py \
        --recovery_method="SparseLabelPropagation" \
        --graphs_path="./data/experiment1/graphs" \
        --samples_path="./data/experiment1/samples/M" \
+       --results_base="./data/experiment1/recovery/M" \
        --file_pattern="*.pk"
 
 python ./experiment1.py \
@@ -138,6 +139,7 @@ python ./experiment1.py \
        --recovery_method="SparseLabelPropagation" \
        --graphs_path="./data/experiment1/graphs" \
        --samples_path="./data/experiment1/samples/L" \
+       --results_base="./data/experiment1/recovery/L" \
        --file_pattern="*.pk"
 ```
 

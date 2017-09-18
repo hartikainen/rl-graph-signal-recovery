@@ -318,7 +318,6 @@ def run_recovery(args):
                                                             sample_files)):
     print(f"recovering graphs from file {i+1}/{num_files}")
 
-    # TODO: this is horrible way of handling the graphs and samples
     graphs_data = load_pickle(graph_filepath)
     samples_data = load_pickle(sample_filepath)
 
