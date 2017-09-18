@@ -82,7 +82,6 @@ def parse_args():
 
 
 def add_signal_to_graph(graph, signal):
-  number_of_partitions = len(graph.graph["partition"])
   for cluster_value, partition in zip(
       signal, graph.graph["partition"]):
     for node_index in partition:
