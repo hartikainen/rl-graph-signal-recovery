@@ -1,7 +1,9 @@
+import os
 import re
 import glob
 import json
 import argparse
+import uuid
 from pprint import pprint
 from distutils.util import strtobool
 from datetime import datetime
@@ -11,7 +13,7 @@ import pathlib
 
 import numpy as np
 
-from utils import dump_results
+from utils import dump_results, dump_pickle, load_pickle
 import generate_appm
 import sampling
 import recovery
@@ -24,6 +26,7 @@ def bool_type(x):
   return bool(strtobool(x))
 
 DEFAULT_SAMPLING_METHOD = "RandomWalkSampling"
+TIMESTAMP_FORMAT = "%Y%m%d-%H%M%S"
 
 def parse_graph_generate_args():
   parser = argparse.ArgumentParser("Experiment 1: Graph generation")
@@ -108,12 +111,15 @@ def parse_sampling_args():
                             " product of Ms and other parameters (Ls)"))
 
 
-  parser.add_argument("--graph_file_pattern",
+  parser.add_argument("--graphs_file_pattern",
                       type=str,
-                      default="./data/experiment1/graphs/*.json",
-                      help=("Run experiment for the graphs matching the"
-                            " file pattern. The pattern is passed to glob.glob"
-                            " function"))
+                      default=("./data/experiment1/graphs/"
+                               f"{datetime.now().strftime('%Y%m%d')}*.pk"),
+                      help=("Run experiment for the graph files matching the"
+                            " file pattern. The pattern is passed to glob.iglob"
+                            " function. Each file can contain multiple graphs"
+                            " in an array. See experiment1 graph generate step"
+                            " for details."))
 
   parser.add_argument("--sampling_method",
                       type=str,
@@ -139,12 +145,21 @@ def parse_recovery_args():
 
   parser.add_argument("--seed", type=int, default=None, help="Random seed")
 
-  parser.add_argument("--sample_file_pattern",
+  parser.add_argument("--graphs_path",
                       type=str,
-                      default="./data/experiment1/samples/*.json",
-                      help=("Run recovery experiment for the graphs/samples"
-                            " matching the file pattern. The pattern is passed"
-                            " to glob.glob function"))
+                      default="./data/experiment1/graphs/",
+                      help="Define the folder path where to look for graph.")
+
+  parser.add_argument("--samples_path",
+                      type=str,
+                      default="./data/experiment1/samples/",
+                      help="Define the folder path where to look for samples.")
+
+  parser.add_argument("--file_pattern",
+                      type=str,
+                      default=f"{datetime.now().strftime('%Y%m%d')}*.pk",
+                      help=("File pattern to look for graphs and samples in"
+                            " their respective paths."))
 
   parser.add_argument("--recovery_method",
                       type=str,
@@ -202,49 +217,78 @@ def run_graph_generate(args):
     "p_out": args["q"],
     "seed": args["seed"],
     "cull_disconnected": args["cull_disconnected"],
+    "out_path": None,
     "visualize": False,
   }
+
+  graphs = {}
   num_graphs = args["num_graphs"]
   for i in range(num_graphs):
-    out_path = (f"{args['results_base']}"
-                f"/{i:0{len(str(num_graphs))-1}}.json")
+    if i == 0 or (i+1) % 100 == 0 or i == (num_graphs - 1):
+      print(f"graph {i+1}/{num_graphs}")
+
     generate_args = generate_args_base.copy()
-    generate_args.update({"out_path": out_path})
 
     if args.get('verbose', False):
       print(f"{i}: {generate_args}")
 
-    generate_appm.main(generate_args)
+    graph = generate_appm.main(generate_args)
+    graph_id = str(uuid.uuid4())
+    graphs[graph_id] = {'args': generate_args, 'graph': graph }
+
+  out_path = (f"{args['results_base']}"
+              f"/{datetime.now().strftime(TIMESTAMP_FORMAT)}.pk")
+
+  dump_pickle(graphs, out_path)
 
 def run_sampling(args):
   print("sampling")
 
   sampling_args_base = { "seed": args["seed"] }
 
-  num_files = len(glob.glob(args["graph_file_pattern"]))
-  for i, filename in enumerate(glob.glob(args["graph_file_pattern"])):
-    if i % 100 == 0:
-      print("sampling file {}/{}".format(i+1, num_files))
-    for L, M in product(args["Ls"], args["Ms"]):
-      if args.get('verbose', False):
-        print("filename: ", filename)
+  num_files = len(glob.glob(args["graphs_file_pattern"]))
+  for i, filepath in enumerate(glob.iglob(args["graphs_file_pattern"])):
+    print(f"sampling graphs from file {i+1}/{num_files}")
+    graphs_data = load_pickle(filepath)
+    num_graphs = len(graphs_data)
 
-      sampling_args = sampling_args_base.copy()
-      sampling_args.update({
-        "graph_file": filename,
-        "sampling_method": args["sampling_method"],
-        "sampling_params": {
-          "L": L,
-          "M": M
-        },
-        "results_file": (f"{args['results_base']}"
-                         f"/{L}-{M}-{filename.split('/')[-1]}")
-      })
+    sampling_result = defaultdict(list)
+    for j, (graph_id, graph_data) in enumerate(graphs_data.items()):
+      if j == 0 or (j+1) % 100 == 0 or j == (num_graphs - 1):
+        print(f"graph {j+1}/{num_graphs}")
 
-      if args.get('verbose', False):
-        print(f"{sampling_args}")
+      graph = graph_data['graph']
+      graph_args = graph_data['args']
 
-      sampling.main(sampling_args)
+      for L, M in product(args["Ls"], args["Ms"]):
+        sampling_args = sampling_args_base.copy()
+        sampling_params = { "L": L, "M": M }
+        sampling_args.update({
+          "graph": graph,
+          "sampling_method": args["sampling_method"],
+          "sampling_params": sampling_params,
+          # "results_file": (f"{args['results_base']}"
+          #                  f"/{L}-{M}-{filepath.split('/')[-1]}")
+        })
+
+        if args.get('verbose', False):
+          print(f"{sampling_args}")
+
+        samples = sampling.main(sampling_args)['sampling_set']
+
+        sampling_result[graph_id].append(
+          {
+            "sampling_method": args["sampling_method"],
+            "sampling_params": sampling_params,
+            "samples": samples
+          }
+        )
+
+
+    filename = filepath.split('/')[-1]
+    out_path = f"{args['results_base']}/{filename}"
+
+    dump_pickle(sampling_result, out_path)
 
 def graph_filepath_from_sample_filepath(sample_filepath):
   parts = sample_filepath.split("/")
@@ -262,36 +306,55 @@ def run_recovery(args):
     "recovery_method": args["recovery_method"],
   }
 
-  results = defaultdict(list)
+  graphs_path = args["graphs_path"]
+  samples_path = args["samples_path"]
+  file_pattern = args["file_pattern"]
+  graph_files = glob.glob(os.path.join(graphs_path, file_pattern))
+  sample_files = glob.glob(os.path.join(samples_path, file_pattern))
+  assert(len(graph_files) == len(sample_files))
 
-  num_files = len(glob.glob(args["sample_file_pattern"]))
-  for i, sample_filepath in enumerate(glob.glob(args["sample_file_pattern"])):
-    if i % 100 == 0:
-      print("recovering file {}/{}".format(i+1, num_files))
-    if args.get('verbose', False):
-      print("sample_filepath: ", sample_filepath)
+  num_files = len(graph_files)
+  for i, (graph_filepath, sample_filepath) in enumerate(zip(graph_files,
+                                                            sample_files)):
+    print(f"recovering graphs from file {i+1}/{num_files}")
+
     # TODO: this is horrible way of handling the graphs and samples
-    graph_filepath = graph_filepath_from_sample_filepath(sample_filepath)
+    graphs_data = load_pickle(graph_filepath)
+    samples_data = load_pickle(sample_filepath)
 
-    recovery_args = recovery_args_base.copy()
-    recovery_args.update({
-      "graph_file": graph_filepath,
-      "sample_file": sample_filepath,
-      "recovery_params": {},
-      # "results_file": (f"{args['results_base']}"
-      #                  f"/{sample_filepath.split('/')[-1]}")
-    })
+    recovery_results = defaultdict()
 
-    if args.get('verbose', False):
-      print(f"{recovery_args}")
+    num_graphs = len(graphs_data)
+    for j, (graph_id, graph_data) in enumerate(graphs_data.items()):
+      if j == 0 or (j+1) % 100 == 0 or j == (num_graphs - 1):
+        print(f"graph {j+1}/{num_graphs}")
 
-    result = recovery.main(recovery_args)
-    key = tuple(
-      int(x) for x in sample_filepath.split('/')[-1].split('-')[:-1]
-    )
-    results[key].append(result['nmse'])
+      graph = graph_data['graph']
+      for sample_data in samples_data[graph_id]:
+        samples = list(sample_data['samples'])
 
-  from nose.tools import set_trace; set_trace()
+        recovery_args = recovery_args_base.copy()
+        recovery_args.update({
+          "graph": graph,
+          "samples": samples,
+          "recovery_params": {},
+          # "results_file": (f"{args['results_base']}"
+          #                  f"/{sample_filepath.split('/')[-1]}")
+        })
+
+        if args.get('verbose', False):
+          print(f"{recovery_args}")
+
+        result = recovery.main(recovery_args)
+        sampling_params = sample_data['sampling_params']
+        key = (graph_id, sampling_params['M'], sampling_params['L'])
+        recovery_results[key] = result['nmse']
+
+    from nose.tools import set_trace; set_trace()
+    filename = graph_filepath.split('/')[-1]
+    out_path = f"{args['results_base']}/{filename}"
+
+    dump_pickle(recovery_results, out_path)
 
 def main(args):
   print(args)

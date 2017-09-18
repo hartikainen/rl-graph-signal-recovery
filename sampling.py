@@ -59,10 +59,15 @@ def main(args):
 
   sampling_method_name = args["sampling_method"]
   sampling_params = args["sampling_params"]
-  graph_file = args["graph_file"]
 
   SamplingMethodClass = getattr(sampling, sampling_method_name)
-  sampling_method = SamplingMethodClass(graph_file, sampling_params)
+
+  graph = args.get("graph")
+  if graph is not None:
+    sampling_method = SamplingMethodClass(graph, sampling_params)
+  else:
+    graph_file = args["graph_file"]
+    sampling_method = SamplingMethodClass(graph_file, sampling_params)
 
   results = args.copy()
 

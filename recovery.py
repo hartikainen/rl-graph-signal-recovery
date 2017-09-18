@@ -64,12 +64,16 @@ def main(args):
     print(args)
   recovery_method_name = args["recovery_method"]
   recovery_params = args["recovery_params"]
-  graph_file = args["graph_file"]
-  sample_file = args["sample_file"]
-
   RecoveryMethodClass = getattr(recovery, recovery_method_name)
-  graph = load_graph(graph_file)
-  samples = load_samples(sample_file)
+
+  graph = args.get("graph")
+  if graph is None:
+    graph = load_graph(args["graph_file"])
+
+  samples = args.get("samples")
+  if samples is None:
+    samples = load_samples(args["samples_file"])
+
   recovery_method = RecoveryMethodClass(graph, samples, recovery_params)
 
   x = [graph.node[node]['value'] for node in graph.nodes_iter()]
