@@ -69,7 +69,9 @@ def sparse_label_propagation(graph, sample_idx, params=None):
   y_shape = (number_of_edges, 1)
 
   # TODO: would it make sense to use sparse D?
-  D = np.array(nx.incidence_matrix(graph, oriented=True).todense()).T
+  D = np.array(nx.incidence_matrix(graph,
+                                   oriented=True,
+                                   weight='weight').todense()).T
   z = np.zeros(x_shape)
   x0 = np.zeros(x_shape)
   x1 = np.zeros(x_shape)
