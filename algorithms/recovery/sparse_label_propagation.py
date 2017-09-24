@@ -42,7 +42,6 @@ def sparse_label_propagation2(graph, sampling_set_indices, params=None):
   y = np.zeros((number_of_edges, 1))
   y_ones = np.ones_like(y)
   xk[sampling_set_indices, 0] = sampling_values
-  #import pdb; pdb.set_trace()
   for k in range(number_of_iterations):
     signal = y + (edge_scaled_D * z)
     y = (1.0 / np.max([y_ones, np.abs(signal)], axis=0)) * signal
