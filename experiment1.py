@@ -78,6 +78,14 @@ def parse_graph_generate_args():
 
   parser.set_defaults(cull_disconnected=True)
 
+  generator_types = list(generate_appm.SIGNAL_GENERATORS.keys())
+  parser.add_argument("--generator_type",
+                      type=str,
+                      default="uniform",
+                      help="Type of signal generator to use for cluster"
+                           " values. Choose from"
+                           " {}".format(generator_types))
+
   parser.add_argument("--results_base",
                       default="./data/experiment1/graphs",
                       type=str,
@@ -217,6 +225,7 @@ def run_graph_generate(args):
     "p_out": args["q"],
     "seed": args["seed"],
     "cull_disconnected": args["cull_disconnected"],
+    "generator_type": args["generator_type"],
     "out_path": None,
     "visualize": False,
   }
@@ -349,7 +358,6 @@ def run_recovery(args):
         key = (graph_id, sampling_params['M'], sampling_params['L'])
         recovery_results[key] = result['nmse']
 
-    from nose.tools import set_trace; set_trace()
     filename = graph_filepath.split('/')[-1]
     out_path = f"{args['results_base']}/{filename}"
 

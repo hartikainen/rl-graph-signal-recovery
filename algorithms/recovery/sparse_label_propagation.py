@@ -18,9 +18,9 @@ def sparse_label_propagation2(graph, sampling_set_indices, params=None):
   params = dict(DEFAULT_RECOVERY_PARAMS, **params if params is not None else {})
   lambda_ = params["lambda"]
   alpha = params["alpha"]
-  number_of_iterations = params['number_of_iterations']
-  number_of_nodes = graph.number_of_nodes()
-  number_of_edges = graph.number_of_edges()
+  num_iterations = params['number_of_iterations']
+  num_nodes = graph.number_of_nodes()
+  num_edges = graph.number_of_edges()
   sampling_values = [graph.node[index]['value']
                      for index in sampling_set_indices]
 
@@ -29,20 +29,20 @@ def sparse_label_propagation2(graph, sampling_set_indices, params=None):
   aux2 = np.squeeze(np.asarray(np.sum(np.abs(D).power(alpha), 1)))
 
   node_scaling_matrix = sparse.spdiags(
-      1.0 / (lambda_ * aux1), 0, number_of_nodes, number_of_nodes)
+      1.0 / (lambda_ * aux1), 0, num_nodes, num_nodes)
   edge_scaling_matrix = sparse.spdiags(
-      lambda_ / aux2, 0, number_of_edges, number_of_edges)
+      lambda_ / aux2, 0, num_edges, num_edges)
 
   edge_scaled_D = sparse.csr_matrix(edge_scaling_matrix * D)
   node_scaled_D = sparse.csr_matrix(node_scaling_matrix * D.T)
 
-  z = np.zeros((number_of_nodes, 1))
-  xk = np.zeros((number_of_nodes, 1))
-  hatx = np.zeros((number_of_nodes, 1))
-  y = np.zeros((number_of_edges, 1))
+  z = np.zeros((num_nodes, 1))
+  xk = np.zeros((num_nodes, 1))
+  hatx = np.zeros((num_nodes, 1))
+  y = np.zeros((num_edges, 1))
   y_ones = np.ones_like(y)
   xk[sampling_set_indices, 0] = sampling_values
-  for k in range(number_of_iterations):
+  for k in range(num_iterations):
     signal = y + (edge_scaled_D * z)
     y = (1.0 / np.max([y_ones, np.abs(signal)], axis=0)) * signal
     r = xk - (node_scaled_D * y)
@@ -104,6 +104,6 @@ class SparseLabelPropagation(GraphRecoveryAlgorithm):
     self.recovery_params.update(recovery_params)
 
   def run(self):
-    return sparse_label_propagation(self.graph,
-                                    self.samples,
-                                    self.recovery_params)
+    return sparse_label_propagation2(self.graph,
+                                     self.samples,
+                                     self.recovery_params)

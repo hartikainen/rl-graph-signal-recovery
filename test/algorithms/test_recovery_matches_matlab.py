@@ -1,11 +1,9 @@
 import networkx as nx
 import numpy as np
 from algorithms.recovery.sparse_label_propagation import (
-    sparse_label_propagation2)
+  sparse_label_propagation2)
 import matplotlib.pyplot as plt
-from pylab import stem
-from pylab import setp
-from pylab import show
+from pylab import stem, setp, show
 
 def test_recovery_matches_original():
   N = 100
@@ -25,7 +23,7 @@ def test_recovery_matches_original():
 
   # TODO: Make this a real testcase
   markerline, stemlines, baseline = stem(
-      np.arange(0,100), slp_hatx[0:100], '-')
+    np.arange(0,100), slp_hatx[0:100], '-')
   setp(markerline, 'markerfacecolor', 'b')
   setp(baseline, 'color','b', 'linewidth', 2)
   setp(stemlines, 'color', 'b')

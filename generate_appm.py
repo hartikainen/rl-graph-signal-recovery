@@ -17,7 +17,7 @@ def get_uniform_signal(size):
 def get_integer_signal(size):
   return np.random.random_integers(0, size, [size])
 
-signal_generators = {
+SIGNAL_GENERATORS = {
   'uniform': get_uniform_signal,
   'integer': get_integer_signal,
 }
@@ -75,7 +75,7 @@ def parse_args():
                       default="uniform",
                       help="Type of signal generator to use for cluster"
                            " values. Choose from"
-                           " {}".format(list(signal_generators.keys())))
+                           " {}".format(list(SIGNAL_GENERATORS.keys())))
 
   args = vars(parser.parse_args())
   return args
@@ -106,7 +106,7 @@ def main(args):
   np.random.seed(seed)
 
   appm = nx.random_partition_graph(sizes, p_in, p_out, seed=seed)
-  signal_generator = signal_generators[generator_type]
+  signal_generator = SIGNAL_GENERATORS[generator_type]
   signal = signal_generator(len(args["sizes"]))
   add_signal_to_graph(appm, signal)
 
