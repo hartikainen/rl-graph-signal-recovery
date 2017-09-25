@@ -52,7 +52,7 @@ def sparse_label_propagation2(graph, sampling_set_indices, params=None):
     hatx = hatx + xk1
     xk = xk1
 
-  return hatx * (1 / k)
+  return hatx * (1 / (k + 1))
 
 
 def sparse_label_propagation(graph, sample_idx, params=None):
