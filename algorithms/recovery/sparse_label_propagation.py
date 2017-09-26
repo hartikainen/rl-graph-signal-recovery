@@ -14,6 +14,18 @@ DEFAULT_RECOVERY_PARAMS = {
   "alpha": 2.0,
 }
 
+
+def custom_incidence_matrix(graph):
+  num_edges = graph.number_of_edges()
+  num_nodes = graph.number_of_nodes()
+  D = np.zeros((num_edges, num_nodes))
+  for i, (start, end) in enumerate(graph.edges()):
+    weight = graph.edge[start][end].get('weight', 1)
+    D[i, start] = -1 * weight
+    D[i, end] = 1 * weight
+  return sparse.csr_matrix(D)
+
+
 def sparse_label_propagation2(graph, sampling_set_indices, params=None):
   params = dict(DEFAULT_RECOVERY_PARAMS, **params if params is not None else {})
   lambda_ = params["lambda"]
@@ -24,7 +36,7 @@ def sparse_label_propagation2(graph, sampling_set_indices, params=None):
   sampling_values = [graph.node[index]['value']
                      for index in sampling_set_indices]
 
-  D = nx.incidence_matrix(graph, oriented=True, weight="weight").T
+  D = custom_incidence_matrix(graph)
   aux1 = np.squeeze(np.asarray(np.sum(np.abs(D).power(2.0 - alpha), 0)))
   aux2 = np.squeeze(np.asarray(np.sum(np.abs(D).power(alpha), 1)))
 
@@ -95,6 +107,7 @@ def sparse_label_propagation(graph, sample_idx, params=None):
     x0 = x1
 
   return x_tilde
+
 
 class SparseLabelPropagation(GraphRecoveryAlgorithm):
   def __init__(self, graph, samples, recovery_params):
