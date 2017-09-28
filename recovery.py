@@ -76,7 +76,7 @@ def main(args):
 
   recovery_method = RecoveryMethodClass(graph, samples, recovery_params)
 
-  x = [graph.node[node]['value'] for node in graph.nodes_iter()]
+  x = [graph.node[idx]['value'] for idx in sorted(graph.node)]
   x_hat = recovery_method.run()
 
   results = args.copy()
