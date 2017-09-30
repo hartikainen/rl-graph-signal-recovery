@@ -13,10 +13,10 @@ import matplotlib.pyplot as plt
 import matplotlib.backends.backend_agg as agg
 
 from gym import Env
-from gym.spaces import Discrete, Tuple, Box
+from gym.spaces import Discrete, Tuple, Box, MultiBinary
 from gym.utils import colorize, seeding
 from algorithms.recovery import sparse_label_propagation
-from graph_functions import total_variance, nmse
+from graph_functions import total_variance, nmse, slp_maximum_error
 from utils import draw_geometrically
 from visualization import draw_partitioned_graph
 import generate_appm
@@ -39,7 +39,7 @@ def generate_graph_args():
 
 logger = logging.getLogger(__name__)
 
-class GraphSamplingEnv(Env):
+class GraphSamplingEnvTest(Env):
 
   metadata = {
     'render.modes': ('human',),
@@ -55,15 +55,16 @@ class GraphSamplingEnv(Env):
 
     observation_max_value = np.iinfo(np.int32)
 
-    self.observation_space = Box(
-        np.array([0] * 10),
-        np.array([observation_max_value] * 10))
+    self.observation_space = MultiBinary(self.graph.number_of_nodes())
     self._current_node = 0
     self._current_edge_idx = 0
     self._clustering_coefficients = None
     self._max_samples = 10
     self._render_depth = render_depth
     self._screen = None
+    x = [self.graph.node[idx]['value']
+         for idx in range(self.graph.number_of_nodes())]
+    self._max_error = slp_maximum_error(x)
 
     self._seed()
     self.reset()
@@ -99,26 +100,10 @@ class GraphSamplingEnv(Env):
 
   def _get_observation(self):
     neighbors = self.graph.neighbors(self._current_node)
-    neighborhood_coefficients = [
-        self._clustering_coefficients[i] for i in neighbors]
-    clustering_coefficients = [
-        self._clustering_coefficients[self._current_node],
-        self._clustering_coefficients[self._get_next_node()],
-        np.mean(neighborhood_coefficients),
-        np.max(neighborhood_coefficients),
-        np.min(neighborhood_coefficients)
-    ]
-    neighborhood_degrees = [
-        self.graph.degree(i) for i in neighbors]
-    degrees = [
-        self.graph.degree(self._current_node),
-        self.graph.degree(self._get_next_node()),
-        np.mean(neighborhood_degrees),
-        np.max(neighborhood_degrees),
-        np.min(neighborhood_degrees)
-    ]
-    return np.array((*clustering_coefficients,
-                     *degrees))
+    observation = np.zeros(self.graph.number_of_nodes(), dtype=np.bool_)
+    observation[neighbors] = True
+    from nose.tools import set_trace; set_trace()
+    return observation
 
   def _do_action(self, action):
     # actions: 0: sample 1: next edge 2: move
@@ -148,7 +133,7 @@ class GraphSamplingEnv(Env):
 
       error = nmse(x, x_hat)
       tv = total_variance(self.graph.edges(), x_hat)
-      reward = error + lambda_ * tv
+      reward = (self._max_error - error) / self._max_error
 
     done = (len(self.sampling_set) >= self._max_samples)
 
