@@ -1,10 +1,15 @@
-from nose.tools import assert_equal
+from nose.tools import assert_equal, assert_true
+import numpy as np
 
 from utils import load_graph
 from algorithms.recovery import sparse_label_propagation
 from algorithms.sampling import RandomWalkSampling
 import generate_appm
-from graph_functions import normalized_mean_squared_error, total_variance
+from graph_functions import (
+  normalized_mean_squared_error,
+  total_variance,
+  slp_maximum_error
+)
 
 def verify_nmse(test_case):
   x, x_hat, expected_nmse = test_case
@@ -39,3 +44,14 @@ def test_total_variance():
 
   for test_case in TEST_CASES:
     yield verify_tv, test_case
+
+def test_slp_maximum_error():
+  TEST_CASES = [
+    ([1,0], 2),
+    ([0,0,0,5], 4),
+    ([-1,1], 4)
+  ]
+
+  for test_case in TEST_CASES:
+    x, error = test_case
+    assert_true(np.allclose(slp_maximum_error(x), error))

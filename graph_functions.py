@@ -23,4 +23,13 @@ def normalized_mean_squared_error(x, x_hat):
 
   return error
 
+def slp_maximum_error(x):
+  if len(x) == 0: return 0
+  maximally_different_x = x.copy()
+  for index, element in enumerate(x):
+    element_vector = np.ones_like(x) * element
+    maximally_different_x[index] = x[np.argmax(np.abs(x - element_vector))]
+  error = normalized_mean_squared_error(x, maximally_different_x)
+  return error
+
 nmse = normalized_mean_squared_error
