@@ -1,23 +1,30 @@
 """Reinforcement learning environment presenting the graph sampling problem
 """
+import matplotlib
+matplotlib.use('Agg')
 
 import logging
 import random
+import pygame
+
+import numpy as np
+import networkx as nx
+import matplotlib.pyplot as plt
+import matplotlib.backends.backend_agg as agg
 
 from gym import Env
 from gym.spaces import Discrete, Tuple, Box
 from gym.utils import colorize, seeding
-import numpy as np
-import networkx as nx
-
 from algorithms.recovery import sparse_label_propagation
-from graph_functions import total_variance
+from graph_functions import total_variance, nmse
 from utils import draw_geometrically
+from visualization import draw_partitioned_graph
 import generate_appm
 
 
 def generate_graph_args():
   graph_args = {
+    "generator_type": "uniform",
     "seed": 1,
     "sizes": [int(draw_geometrically(10, 50)) for _ in range(5)],
     "p_in": np.random.rand() * 0.30,
@@ -37,7 +44,7 @@ class GraphSamplingEnv(Env):
     'render.modes': ('human',),
   }
 
-  def __init__(self, max_samples=10):
+  def __init__(self, max_samples=10, render_depth=2):
     self._generate_new_graph()
     num_nodes = self.graph.number_of_nodes()
     self.sampling_set = set()
@@ -54,6 +61,8 @@ class GraphSamplingEnv(Env):
     self._current_edge_idx = 0
     self._clustering_coefficients = None
     self._max_samples = 10
+    self._render_depth = render_depth
+    self._screen = None
 
     self._seed()
     self.reset()
@@ -143,3 +152,61 @@ class GraphSamplingEnv(Env):
     done = (len(self.sampling_set) >= self._max_samples)
 
     return observation, reward, done, {}
+
+  def _render(self, mode='human', close=False):
+    if close:
+      if self._screen is not None:
+        pygame.display.quit()
+        pygame.quit()
+      return
+
+    if self._screen is None:
+      pygame.init()
+      self._screen= pygame.display.set_mode(
+          (800, 800))
+
+    subgraph_paths = nx.single_source_shortest_path(
+        self.graph, self._current_node,
+        cutoff=self._render_depth)
+
+    nodelist = [[] for _ in range(self._render_depth+1)]
+
+    for key, path in subgraph_paths.items():
+      level = len(path) - 1
+      nodelist[level].append(key)
+
+    edge_colors = []
+    edge_list = []
+    subgraph = self.graph.subgraph(subgraph_paths)
+
+    edge_to = self.graph.neighbors(
+        self._current_node)[self._current_edge_idx]
+    for edge in subgraph.edges():
+      edge_list.append(edge)
+      if (edge_to in edge and self._current_node in edge):
+        edge_colors.append('r')
+      else:
+        edge_colors.append('k')
+
+    fig = plt.figure(figsize=[4,4], dpi=200)
+    layout = nx.shell_layout(subgraph, nodelist)
+    nx.draw(subgraph,
+            edgelist=edge_list,
+            edge_color=edge_colors,
+            width=0.5,
+            with_labels=True,
+            center=self._current_node,
+            pos=layout)
+
+    canvas = agg.FigureCanvasAgg(fig)
+    canvas.draw()
+    size = canvas.get_width_height()
+    raw_data = fig.canvas.tostring_rgb()
+    plt.close(fig)
+    surface = pygame.image.fromstring(raw_data, size, "RGB")
+    self._screen.blit(surface, (0, 0))
+    pygame.display.flip()
+
+    # TODO: the event loop should be continuously pumped somewhere to avoid UI
+    # freezing after every call to _render()
+    pygame.event.get()
