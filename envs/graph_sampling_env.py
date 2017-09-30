@@ -24,7 +24,8 @@ def generate_graph_args():
     "p_out": np.random.rand() * 0.05,
     "out_path": None,
     "visualize": False,
-    "cull_disconnected": True
+    "cull_disconnected": True,
+    "generator_type": "uniform"
   }
   return graph_args
 
