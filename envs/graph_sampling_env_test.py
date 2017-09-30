@@ -102,7 +102,6 @@ class GraphSamplingEnvTest(Env):
     neighbors = self.graph.neighbors(self._current_node)
     observation = np.zeros(self.graph.number_of_nodes(), dtype=np.bool_)
     observation[neighbors] = True
-    from nose.tools import set_trace; set_trace()
     return observation
 
   def _do_action(self, action):

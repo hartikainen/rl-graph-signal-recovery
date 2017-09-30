@@ -169,35 +169,49 @@ class GraphSamplingEnv(Env):
     subgraph_paths = nx.single_source_shortest_path(
         self.graph, self._current_node,
         cutoff=self._render_depth)
+    subgraph = self.graph.subgraph(subgraph_paths)
 
     nodelist = [[] for _ in range(self._render_depth+1)]
-
+    nodelist_1d = []
+    node_color = []
     for key, path in subgraph_paths.items():
       level = len(path) - 1
       nodelist[level].append(key)
+      nodelist_1d.append(key)
+      if key in self.sampling_set:
+        node_color.append('r')
+      else:
+        node_color.append('g')
 
-    edge_colors = []
+    local_labels = {key: str(self._clustering_coefficients[key])[:4]
+                    for key in subgraph.node}
+
+    edge_color = []
     edge_list = []
-    subgraph = self.graph.subgraph(subgraph_paths)
-
     edge_to = self.graph.neighbors(
         self._current_node)[self._current_edge_idx]
     for edge in subgraph.edges():
       edge_list.append(edge)
       if (edge_to in edge and self._current_node in edge):
-        edge_colors.append('r')
+        edge_color.append('r')
+      elif (edge[0] not in nodelist[1]):
+        edge_color.append('k')
       else:
-        edge_colors.append('k')
+        edge_color.append('b')
 
     fig = plt.figure(figsize=[4,4], dpi=200)
     layout = nx.shell_layout(subgraph, nodelist)
     nx.draw(subgraph,
             edgelist=edge_list,
-            edge_color=edge_colors,
+            edge_color=edge_color,
+            nodelist=nodelist_1d,
+            node_color=node_color,
             width=0.5,
             with_labels=True,
             center=self._current_node,
-            pos=layout)
+            pos=layout,
+            labels=local_labels,
+            font_size=8)
 
     canvas = agg.FigureCanvasAgg(fig)
     canvas.draw()
