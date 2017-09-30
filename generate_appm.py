@@ -112,6 +112,7 @@ def main(args):
 
   if cull_disconnected:
     cull_disconnected_nodes(appm)
+    appm = nx.relabel.convert_node_labels_to_integers(appm, 0)
 
   if visualize:
     draw_partitioned_graph(appm)
