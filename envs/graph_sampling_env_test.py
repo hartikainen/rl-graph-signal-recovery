@@ -124,7 +124,7 @@ class GraphSamplingEnvTest(Env):
     reward = 0.0
     done = False
 
-    if action == 0 and len(self.sampling_set) > 0 and not done:
+    if not done and action == 0 and self._current_node not in self.sampling_set:
       x_hat = sparse_label_propagation(self.graph, list(self.sampling_set))
       lambda_ = 1e-2 # TODO: make this parameter
       x = [self.graph.node[idx]['value']
@@ -168,7 +168,7 @@ class GraphSamplingEnvTest(Env):
         self._current_node)[self._current_edge_idx]
     for edge in subgraph.edges():
       edge_list.append(edge)
-      if (edge_to in edge and self._current_node in edge):
+      if edge_to in edge and self._current_node in edge:
         edge_colors.append('r')
       else:
         edge_colors.append('k')
