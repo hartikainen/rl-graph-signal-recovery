@@ -132,11 +132,13 @@ class GraphSamplingEnv(Env):
 
     if action == 0 and len(self.sampling_set) > 0 and not done:
       x_hat = sparse_label_propagation(self.graph, list(self.sampling_set))
-      lmbd = 1e-2 # TODO: make this parameter
-      reward = np.sum([
-        np.power(self.graph.node[i]['value'] - x_hat[i], 2.0)
-        for i in self.sampling_set
-      ]) + lmbd * total_variance(self.graph.edges(), x_hat)
+      lambda_ = 1e-2 # TODO: make this parameter
+      x = [self.graph.node[idx]['value']
+           for idx in range(self.graph.number_of_nodes())]
+
+      error = nmse(x, x_hat)
+      tv = total_variance(self.graph.edges(), x_hat)
+      reward = error + lambda_ * tv
 
     done = (len(self.sampling_set) >= self._max_samples)
 
