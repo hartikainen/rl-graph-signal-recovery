@@ -1,5 +1,6 @@
 import numpy as np
 import tensorflow as tf
+from gym.spaces import Box, MultiBinary
 from baselines import deepq
 from baselines.common import tf_util
 from baselines.common.schedules import LinearSchedule
@@ -9,9 +10,8 @@ from algorithms.recovery import sparse_label_propagation
 from graph_functions import nmse
 
 class BaseAgent(object):
-  def __init__(self, env, num_train_graphs=1000):
+  def __init__(self, env):
     self.env = env
-    self.num_train_graphs = num_train_graphs
     self._build_train()
     self.session = tf_util.make_session(1)
 
@@ -19,22 +19,25 @@ class BaseAgent(object):
     env = self.env
 
     def observation_ph_generator(name):
-      return tf_util.BatchInput(env.observation_space.shape, name=name)
+      if isinstance(env.observation_space, MultiBinary):
+        batch_shape = (env.observation_space.n,)
+      elif isinstance(env.observation_space, Box):
+        batch_shape = env.observation_space.shape
+      return tf_util.BatchInput(batch_shape, name=name)
 
     act, train, update_target, debug = deepq.build_train(
       make_obs_ph=observation_ph_generator,
-      q_func=deepq.models.mlp([50,50,50]),
+      q_func=deepq.models.mlp([100]),
       num_actions=env.action_space.n,
-      optimizer=tf.train.AdamOptimizer(learning_rate=5e-4),
+      optimizer=tf.train.AdamOptimizer(learning_rate=1),
     )
     self.act = act
     self.train = train
     self.update_target = update_target
     self.debug = debug
 
-  def learn(self):
+  def learn(self, num_train_graphs=100):
     env = self.env
-    num_train_graphs = self.num_train_graphs
 
     act = self.act
     train = self.train
@@ -45,7 +48,7 @@ class BaseAgent(object):
       replay_buffer = ReplayBuffer(10)
       # Create the schedule for exploration starting from 1 (every action is random) down to
       # 0.02 (98% of actions are selected according to values predicted by the model).
-      exploration = LinearSchedule(schedule_timesteps=10000,
+      exploration = LinearSchedule(schedule_timesteps=1000,
                                    initial_p=1.0,
                                    final_p=0.02)
 
@@ -69,6 +72,14 @@ class BaseAgent(object):
           episode_rewards[-1] += reward
 
           if done:
+            if len(episode_rewards) % 10 == 0:
+              nmse = env.get_current_nmse()
+              print("steps", t)
+              print("episodes", len(episode_rewards))
+              print("mean episode reward", round(np.mean(episode_rewards[-101:-1]), 1))
+              print("nmse: ", nmse)
+              print("% time spent exploring", int(100 * exploration.value(t)))
+
             observation = env.reset()
             episode_rewards.append(0)
 
@@ -87,12 +98,6 @@ class BaseAgent(object):
               # Update target network periodically.
               update_target()
 
-          if done and len(episode_rewards) % 10 == 0:
-            print("steps", t)
-            print("episodes", len(episode_rewards))
-            print("mean episode reward", round(np.mean(episode_rewards[-101:-1]), 1))
-            print("% time spent exploring", int(100 * exploration.value(t)))
-
   def test(self):
     env = self.env
     act = self.act
@@ -105,9 +110,5 @@ class BaseAgent(object):
         action = act(observation[None], update_eps=0.9)[0]
         observation, reward, done, _ = env.step(action)
 
-      graph = env.graph
-      x = [graph.node[i]['value'] for i in graph.nodes_iter()]
-      sampling_set = env.sampling_set
-      x_hat = sparse_label_propagation(graph, list(sampling_set))
-
-      print("nmse: {}".format(nmse(x, x_hat)))
+    nmse = env.get_current_nmse()
+    print("nmse: ", nmse)

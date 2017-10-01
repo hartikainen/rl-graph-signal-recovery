@@ -7,8 +7,8 @@ def train_test_agent():
 
   num_train_graphs = 10
 
-  agent = BaseAgent(env=env, num_train_graphs=num_train_graphs)
-  agent.learn()
+  agent = BaseAgent(env=env)
+  agent.learn(num_train_graphs)
   agent.test()
 
 if __name__ == "__main__":
