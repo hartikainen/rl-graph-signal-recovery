@@ -44,7 +44,7 @@ class GraphSamplingEnv(Env):
     'render.modes': ('human',),
   }
 
-  def __init__(self, max_samples=10, render_depth=2):
+  def __init__(self, max_samples=10, render_depth=3):
     self._generate_new_graph()
     num_nodes = self.graph.number_of_nodes()
     self.sampling_set = set()
@@ -192,7 +192,7 @@ class GraphSamplingEnv(Env):
       edge_list.append(edge)
       if (edge_to in edge and self._current_node in edge):
         edge_color.append('r')
-      elif (edge[0] not in nodelist[1]):
+      elif (self._current_node in edge):
         edge_color.append('k')
       else:
         edge_color.append('b')
@@ -202,6 +202,7 @@ class GraphSamplingEnv(Env):
     nx.draw(subgraph,
             edgelist=edge_list,
             edge_color=edge_color,
+            style='dashed',
             nodelist=nodelist_1d,
             node_color=node_color,
             width=0.5,
