@@ -42,11 +42,6 @@ def parse_args():
                       default=0.05,
                       help="Probability of connecting vertices between groups")
 
-  parser.add_argument("--seed",
-                      type=int,
-                      default=None,
-                      help="Random seed")
-
   parser.add_argument("--visualize",
                       action="store_true",
                       default=False,
@@ -97,15 +92,12 @@ def cull_disconnected_nodes(graph):
 
 
 def main(args):
-  (sizes, p_in, p_out, seed, generator_type) = (
-      args["sizes"], args["p_in"], args["p_out"], args["seed"],
-      args["generator_type"])
+  (sizes, p_in, p_out, generator_type) = (
+      args["sizes"], args["p_in"], args["p_out"], args["generator_type"])
   visualize, out_path, cull_disconnected = (
       args["visualize"], args["out_path"], args['cull_disconnected'])
 
-  np.random.seed(seed)
-
-  appm = nx.random_partition_graph(sizes, p_in, p_out, seed=seed)
+  appm = nx.random_partition_graph(sizes, p_in, p_out)
   signal_generator = SIGNAL_GENERATORS[generator_type]
   signal = signal_generator(len(args["sizes"]))
   add_signal_to_graph(appm, signal)
