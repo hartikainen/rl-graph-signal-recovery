@@ -1,2 +1,2 @@
 from .graph_sampling_env import GraphSamplingEnv
-from .graph_sampling_env_test import GraphSamplingEnvTest
+from .fixed_graph_sampling_env import FixedGraphSamplingEnv
