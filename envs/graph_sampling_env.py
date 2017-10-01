@@ -14,7 +14,7 @@ import matplotlib.backends.backend_agg as agg
 
 from gym import Env
 from gym.spaces import Discrete, Tuple, Box
-from gym.utils import colorize, seeding
+from gym.utils import colorize
 from algorithms.recovery import sparse_label_propagation
 from graph_functions import total_variance, nmse
 from utils import draw_geometrically
@@ -25,7 +25,6 @@ import generate_appm
 def generate_graph_args():
   graph_args = {
     "generator_type": "uniform",
-    "seed": 1,
     "sizes": [int(draw_geometrically(10, 50)) for _ in range(5)],
     "p_in": np.random.rand() * 0.30,
     "p_out": np.random.rand() * 0.05,
@@ -65,17 +64,12 @@ class GraphSamplingEnv(Env):
     self._render_depth = render_depth
     self._screen = None
 
-    self._seed()
     self.reset()
 
   def _generate_new_graph(self):
     graph_args = generate_graph_args()
     graph = generate_appm.main(graph_args)
     self.graph = graph
-
-  def _seed(self, seed=None):
-    self.np_random, seed = seeding.np_random(seed)
-    return [seed]
 
   def _randomize_position(self):
     self._current_node = random.sample(self.graph.nodes(), 1)[0]
