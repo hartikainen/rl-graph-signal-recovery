@@ -177,6 +177,10 @@ class GraphSamplingEnv(Env):
       else:
         node_color.append('g')
 
+    for level in range(self._render_depth + 1):
+      if len(nodelist[level]) == 0:
+        del nodelist[level]
+
     local_labels = {key: str(self._clustering_coefficients[key])[:4]
                     for key in subgraph.node}
 
