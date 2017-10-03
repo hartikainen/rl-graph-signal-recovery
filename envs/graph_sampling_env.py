@@ -60,7 +60,9 @@ class GraphSamplingEnv(Env):
     self._current_node = 0
     self._current_edge_idx = 0
     self._clustering_coefficients = None
-    self._max_samples = 10
+    self._max_samples_in = max_samples
+    self._max_samples = min(self._max_samples_in,
+                            self.graph.number_of_nodes())
     self._render_depth = render_depth
     self._screen = None
 
@@ -79,6 +81,8 @@ class GraphSamplingEnv(Env):
   def _reset(self):
     self._generate_new_graph()
     self.sampling_set = set()
+    self._max_samples = min(self._max_samples_in,
+                            self.graph.number_of_nodes())
     self._randomize_position()
     self._clustering_coefficients = nx.clustering(self.graph)
     return self._get_observation()
