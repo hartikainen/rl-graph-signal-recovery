@@ -15,23 +15,24 @@ class SimpleHeuristicsAgent(BaseAgent):
     graph = self.env.graph
     boundary_degrees = defaultdict(list)
     degrees = graph.degree()
-    for node in partition:
+    partition_data = np.zeros((len(partition), 3), dtype=np.int32)
+    for index, node in enumerate(partition):
       boundary_degree = len(
           [n for n in graph.neighbors(node)
            if n not in partition])
-      boundary_degrees[boundary_degree].append(node)
+      partition_data[index, 0] = node
+      partition_data[index, 1] = boundary_degree
+      partition_data[index, 2] = degrees[node]
       self.node_data[node] = {'bd': boundary_degree,
                               'degree': degrees[node],
                               'partition_size': len(partition)}
 
-    sorted_boundary_degrees = sorted(boundary_degrees.keys())
-    sorted_nodes = []
-    for degree in sorted_boundary_degrees:
-      degree_nodes = boundary_degrees[degree]
-      global_degree_indices = np.argsort([degrees[i] for i in degree_nodes])
-      global_degree_sorted = [degree_nodes[i] for i in global_degree_indices]
-      sorted_nodes += global_degree_sorted
-    return sorted_nodes
+    partition_data = partition_data[
+        partition_data[:,2].argsort()][::-1]
+    partition_data = partition_data[
+        partition_data[:,1].argsort(kind='mergesort')]
+
+    return list(partition_data[:, 0])
 
   def compute_sampling_list(self):
     self.sampling_list = []
@@ -70,8 +71,7 @@ class SimpleHeuristicsAgent(BaseAgent):
       next_node = self.sampling_list.pop()
       self.env.sampling_set.add(next_node)
       return 1
-    else:
-      return 0
+    return None
 
   def learn(self):
     raise NotImplementedError('SimpleHeuristicsAgent does not need training')
