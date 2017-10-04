@@ -63,7 +63,20 @@ def parse_args():
                       help="Use to leave nodes that are not connected to the"
                            " main graph")
 
+  parser.add_argument("--connect_disconnected",
+                      action="store_true",
+                      dest="connect_disconnected",
+                      help="Connect nodes that are not connected to the main"
+                           " graph")
+
+  parser.add_argument("--no_connect_disconnected",
+                      action="store_false",
+                      dest="connect_disconnected",
+                      help="Use to leave nodes that are not connected to the"
+                           " main graph")
+
   parser.set_defaults(cull_disconnected=True)
+  parser.set_defaults(connect_disconnected=True)
 
   parser.add_argument("--generator_type",
                       type=str,
@@ -102,8 +115,10 @@ def cull_disconnected_nodes(graph):
 def main(args):
   (sizes, p_in, p_out, generator_type) = (
       args["sizes"], args["p_in"], args["p_out"], args["generator_type"])
-  visualize, out_path, cull_disconnected = (
-      args["visualize"], args["out_path"], args['cull_disconnected'])
+  visualize, out_path = args["visualize"], args["out_path"]
+
+  cull_disconnected = args['cull_disconnected']
+  connect_disconnected = args['connect_disconnected']
 
   appm = nx.random_partition_graph(sizes, p_in, p_out)
   signal_generator = SIGNAL_GENERATORS[generator_type]

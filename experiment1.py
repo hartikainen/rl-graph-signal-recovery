@@ -75,7 +75,20 @@ def parse_graph_generate_args():
                       help="Use to leave nodes that are not connected to the"
                            " main graph")
 
+  parser.add_argument("--connect_disconnected",
+                      action="store_true",
+                      dest="connect_disconnected",
+                      help="Connect nodes that are not connected to the main"
+                           " graph")
+
+  parser.add_argument("--no_connect_disconnected",
+                      action="store_false",
+                      dest="connect_disconnected",
+                      help="Connect nodes that are not connected to the main"
+                           " graph")
+
   parser.set_defaults(cull_disconnected=True)
+  parser.set_defaults(connect_disconnected=False)
 
   generator_types = list(generate_appm.SIGNAL_GENERATORS.keys())
   parser.add_argument("--generator_type",
@@ -224,6 +237,7 @@ def run_graph_generate(args):
     "p_out": args["q"],
     "seed": args["seed"],
     "cull_disconnected": args["cull_disconnected"],
+    "connect_disconnected": args["connect_disconnected"],
     "generator_type": args["generator_type"],
     "out_path": None,
     "visualize": False,
