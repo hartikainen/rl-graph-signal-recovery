@@ -1,7 +1,8 @@
 import networkx as nx
 import numpy as np
 from algorithms.recovery.sparse_label_propagation import (
-  sparse_label_propagation2)
+  sparse_label_propagation,
+)
 import matplotlib.pyplot as plt
 from pylab import stem, setp, show
 
@@ -28,7 +29,7 @@ def test_recovery_matches_original():
   graph.node[N-1]['value'] = 5
 
   graph = nx.relabel.convert_node_labels_to_integers(graph, 0)
-  slp_hatx = sparse_label_propagation2(graph, sampling_set,
+  slp_hatx = sparse_label_propagation(graph, sampling_set,
       params={'number_of_iterations': 99, 'lambda':1.0, 'alpha':2.0})
 
   assert np.allclose(np.array(SYNTH_GROUND_TRUTH), np.squeeze(slp_hatx))
@@ -47,6 +48,6 @@ def test_recovery_matches_original_lfr():
     graph.node[node_index]['value'] = label
   sampling_set = [6, 9, 10, 18, 3, 26, 5]
 
-  slp_hatx = sparse_label_propagation2(graph, sampling_set,
+  slp_hatx = sparse_label_propagation(graph, sampling_set,
       params={'number_of_iterations': 1999, 'lambda':1.0, 'alpha':2.0})
   assert np.allclose(np.squeeze(slp_hatx), np.array(LFR_GROUND_TRUTH))
