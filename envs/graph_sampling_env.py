@@ -31,7 +31,7 @@ def generate_graph_args():
     "out_path": None,
     "visualize": False,
     "cull_disconnected": False,
-    "connect_disconnected": False,
+    "connect_disconnected": True,
     "generator_type": "uniform"
   }
   return graph_args
