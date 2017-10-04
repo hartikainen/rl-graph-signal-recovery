@@ -23,21 +23,6 @@ from visualization import draw_partitioned_graph
 import generate_appm
 
 
-def generate_graph_args():
-  graph_args = {
-    "generator_type": "uniform",
-    "seed": 1,
-    "sizes": [int(draw_geometrically(10, 50)) for _ in range(5)],
-    "p_in": np.random.rand() * 0.30,
-    "p_out": np.random.rand() * 0.05,
-    "out_path": None,
-    "visualize": False,
-    "cull_disconnected": True,
-    "generator_type": "uniform"
-  }
-  return graph_args
-
-
 logger = logging.getLogger(__name__)
 
 class FixedGraphSamplingEnv(GraphSamplingEnv):
@@ -51,7 +36,10 @@ class FixedGraphSamplingEnv(GraphSamplingEnv):
     self._fixed_graph = fixed_graph
     super()._generate_new_graph()
     super().__init__(max_samples, render_depth)
-    self.observation_space = MultiBinary(self.graph.number_of_nodes())
+    self.observation_space = Discrete(2)
+    x = [self.graph.node[idx]['value']
+         for idx in range(self.graph.number_of_nodes())]
+    self.slp_maximum_error = slp_maximum_error(x)
 
   def _generate_new_graph(self):
     if self.graph is not None and self._fixed_graph:
@@ -60,9 +48,32 @@ class FixedGraphSamplingEnv(GraphSamplingEnv):
 
   def _get_observation(self):
     neighbors = self.graph.neighbors(self._current_node)
-    observation = np.zeros(self.graph.number_of_nodes(), dtype=np.bool_)
-    observation[neighbors] = True
+    observation = np.zeros(2)
+    observation[-2] = self._current_node
+    observation[-1] = neighbors[self._current_edge_idx]
+
     return observation
+
+  def _step(self, action):
+    self._validate_action(action)
+    self._do_action(action)
+    observation = self._get_observation()
+
+    num_samples = len(self.sampling_set)
+    reward = 0.0
+
+    done = (num_samples >= self._max_samples
+            or num_samples >= self.graph.number_of_nodes())
+
+    if done:
+      x_hat = sparse_label_propagation(self.graph, list(self.sampling_set))
+      x = [self.graph.node[idx]['value']
+           for idx in range(self.graph.number_of_nodes())]
+
+      error = nmse(x, x_hat)
+      reward = (self.slp_maximum_error - error) / self.slp_maximum_error
+
+    return observation, reward, done, {}
 
   def get_current_nmse(self):
     graph = self.graph

@@ -2,7 +2,6 @@ import json
 import argparse
 from pprint import pprint
 from distutils.util import strtobool
-from datetime import datetime
 
 import numpy as np
 

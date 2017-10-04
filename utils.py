@@ -16,6 +16,7 @@ class ObjectEncoder(json.JSONEncoder):
       return obj.tolist()
     return json.JSONEncoder.default(self, obj)
 
+TIMESTAMP_FORMAT = "%Y%m%d-%H%M%S"
 DEFAULT_JSON_ARGS = {
   "indent": 2,
   "separators": (',', ': '),

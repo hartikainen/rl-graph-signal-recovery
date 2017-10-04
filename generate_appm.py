@@ -82,6 +82,14 @@ def add_signal_to_graph(graph, signal):
     for node_index in partition:
       graph.node[node_index]['value'] = cluster_value
 
+def connect_disconnected_nodes(graph):
+  connected_components = [c for c in sorted(nx.connected_components(graph),
+                                            key=len,
+                                            reverse=True)]
+  for component in connected_components[1:]:
+    random_node = np.random.choice(tuple(component))
+    destination_node = np.random.choice(tuple(connected_components[0]))
+    graph.add_edge(random_node, destination_node)
 
 def cull_disconnected_nodes(graph):
   connected_components = [c for c in sorted(nx.connected_components(graph),
@@ -104,6 +112,10 @@ def main(args):
 
   if cull_disconnected:
     cull_disconnected_nodes(appm)
+    appm = nx.relabel.convert_node_labels_to_integers(appm, 0)
+
+  if connect_disconnected:
+    connect_disconnected_nodes(appm)
     appm = nx.relabel.convert_node_labels_to_integers(appm, 0)
 
   if visualize:

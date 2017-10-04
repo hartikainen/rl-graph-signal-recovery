@@ -25,12 +25,13 @@ import generate_appm
 def generate_graph_args():
   graph_args = {
     "generator_type": "uniform",
-    "sizes": [int(draw_geometrically(10, 50)) for _ in range(5)],
-    "p_in": np.random.rand() * 0.30,
-    "p_out": np.random.rand() * 0.05,
+    "sizes": [10, 20, 30, 40],
+    "p_in": 0.3,
+    "p_out": 0.05,
     "out_path": None,
     "visualize": False,
-    "cull_disconnected": True,
+    "cull_disconnected": False,
+    "connect_disconnected": False,
     "generator_type": "uniform"
   }
   return graph_args
@@ -60,7 +61,7 @@ class GraphSamplingEnv(Env):
     self._current_node = 0
     self._current_edge_idx = 0
     self._clustering_coefficients = None
-    self._max_samples = 10
+    self._max_samples = max_samples
     self._render_depth = render_depth
     self._screen = None
 
@@ -144,7 +145,9 @@ class GraphSamplingEnv(Env):
       tv = total_variance(self.graph.edges(), x_hat)
       reward = error + lambda_ * tv
 
-    done = (len(self.sampling_set) >= self._max_samples)
+    num_samples = len(self.sampling_set)
+    done = (num_samples >= self._max_samples
+            or num_samples >= self.graph.number_of_nodes())
 
     return observation, reward, done, {}
 

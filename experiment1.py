@@ -13,7 +13,7 @@ import pathlib
 
 import numpy as np
 
-from utils import dump_results, dump_pickle, load_pickle
+from utils import dump_results, dump_pickle, load_pickle, TIMESTAMP_FORMAT
 import generate_appm
 import sampling
 import recovery
@@ -26,7 +26,6 @@ def bool_type(x):
   return bool(strtobool(x))
 
 DEFAULT_SAMPLING_METHOD = "RandomWalkSampling"
-TIMESTAMP_FORMAT = "%Y%m%d-%H%M%S"
 
 def parse_graph_generate_args():
   parser = argparse.ArgumentParser("Experiment 1: Graph generation")
