@@ -91,3 +91,35 @@ def _position_nodes(g, partition, **kwargs):
     pos.update(pos_subgraph)
 
   return pos
+
+def plot_agent_history(data):
+  """Plot agent history from data argument
+
+  Data needs to be an array, with each element containing dictionary
+  with the follwing keys: 'steps', 'reward', 'nmse', 'exploration_prop'. E.g.
+    [
+      {
+        "steps": 10,
+        "reward": 1.2,
+        "nmse": 0.1,
+        "exploration_prop": 0.98,
+      },
+      ...
+    ]
+  """
+  steps, nmses, rewards, exploration_props = [], [], [], []
+  for datum in data:
+    steps.append(datum["steps"])
+    rewards.append(datum["reward"])
+    nmses.append(datum["nmse"])
+    exploration_props.append(datum["exploration_prop"])
+
+  fig = plt.figure(1)
+  for i, (y_data, name) in enumerate(zip([steps, nmses, rewards, exploration_props],
+                                         ["steps", "nmse", "rewards", "exploration %"])):
+    plt.subplot(4,1,i+1)
+    plt.plot(range(len(data)), y_data)
+    plt.xlabel("episode")
+    plt.ylabel(name)
+
+  plt.show()
