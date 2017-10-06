@@ -1,16 +1,11 @@
 """Reinforcement learning environment presenting the graph sampling problem
 """
-import matplotlib
-matplotlib.use('Agg')
-
 import logging
 import random
 from itertools import combinations
 
 import numpy as np
 import networkx as nx
-import matplotlib.pyplot as plt
-import matplotlib.backends.backend_agg as agg
 import pygame
 from gym import Env
 from gym.spaces import Discrete, Tuple, Box, MultiBinary
@@ -48,7 +43,7 @@ class SimpleThreeClusterEnv(GraphSamplingEnv):
     self.slp_maximum_error = slp_maximum_error(x)
 
     self._current_edge_idx = 0
-    self._current_node = 0
+    self._current_node = np.random.randint(num_nodes)
     self._clustering_coefficients = None
     self._max_samples = max_samples
     self._render_depth = render_depth
@@ -130,6 +125,12 @@ class SimpleThreeClusterEnv(GraphSamplingEnv):
       reward = self._reward()
 
     return observation, reward, done, {}
+
+  def _reset(self):
+    self.sampling_set = set()
+    self._current_node = np.random.randint(self.graph.number_of_nodes())
+    self._current_edge_idx = 0
+    return self._get_observation()
 
   def get_current_nmse(self):
     graph = self.graph

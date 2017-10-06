@@ -1,15 +1,10 @@
 """Reinforcement learning environment presenting the graph sampling problem
 """
-import matplotlib
-matplotlib.use('Agg')
-
 import logging
 import random
 
 import numpy as np
 import networkx as nx
-import matplotlib.pyplot as plt
-import matplotlib.backends.backend_agg as agg
 import pygame
 from gym import Env
 from gym.spaces import Discrete, Tuple, Box, MultiBinary
