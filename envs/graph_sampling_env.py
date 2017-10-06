@@ -47,7 +47,6 @@ class GraphSamplingEnv(Env):
 
   def __init__(self, max_samples=10, render_depth=3):
     self._generate_new_graph()
-    num_nodes = self.graph.number_of_nodes()
     self.sampling_set = set()
 
     # actions: 0: sample 1: next edge 2: move
@@ -75,7 +74,7 @@ class GraphSamplingEnv(Env):
   def _randomize_position(self):
     self._current_node = random.sample(self.graph.nodes(), 1)[0]
     self._current_edge_idx = np.random.randint(
-        len(self.graph.neighbors(self._current_node)))
+      len(self.graph.neighbors(self._current_node)))
 
   def _reset(self):
     self._generate_new_graph()
@@ -112,8 +111,8 @@ class GraphSamplingEnv(Env):
         np.max(neighborhood_degrees),
         np.min(neighborhood_degrees)
     ]
-    return np.array((*clustering_coefficients,
-                     *degrees))
+
+    return np.array((*clustering_coefficients, *degrees))
 
   def _do_action(self, action):
     # actions: 0: sample 1: next edge 2: move
