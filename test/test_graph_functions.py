@@ -20,8 +20,8 @@ def test_nmse():
   # TODO: add some real data test cases, preferably in fixture file form
   TEST_CASES = [
     ([1,2,3,4,5], [2,3,4,5,6], 0.090909090909090925),
-    ([0,0], [0,0], 0),
-    ([0,0], [1,1], 0),
+    ([0,0], [0,0], float('inf')),
+    ([0,0], [1,1], float('inf')),
     ([], [], 0),
   ]
 

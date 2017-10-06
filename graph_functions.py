@@ -18,7 +18,7 @@ def normalized_mean_squared_error(x, x_hat):
   x_diff = x_hat - x
   x_diff_norm = np.linalg.norm(x_diff, 2)
   x_norm = np.linalg.norm(x, 2)
-  if x_norm == 0: return 0
+  if x_norm == 0: return float('inf')
   error = np.power(x_diff_norm, 2.0) / np.power(x_norm, 2.0)
 
   return error
