@@ -43,7 +43,7 @@ class SimpleThreeClusterEnv(GraphSamplingEnv):
     self.slp_maximum_error = slp_maximum_error(x)
 
     self._current_edge_idx = 0
-    self._current_node = 0
+    self._current_node = np.random.randint(num_nodes)
     self._clustering_coefficients = None
     self._max_samples = max_samples
     self._render_depth = render_depth
@@ -125,6 +125,12 @@ class SimpleThreeClusterEnv(GraphSamplingEnv):
       reward = self._reward()
 
     return observation, reward, done, {}
+
+  def _reset(self):
+    self.sampling_set = set()
+    self._current_node = np.random.randint(self.graph.number_of_nodes())
+    self._current_edge_idx = 0
+    return self._get_observation()
 
   def get_current_nmse(self):
     graph = self.graph
