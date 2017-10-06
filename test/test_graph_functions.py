@@ -7,7 +7,7 @@ from algorithms.sampling import RandomWalkSampling
 import generate_appm
 from graph_functions import (
   normalized_mean_squared_error,
-  total_variance,
+  total_variation,
   slp_maximum_error
 )
 
@@ -30,10 +30,10 @@ def test_nmse():
 
 def verify_tv(test_case):
   edges, signal, expected_tv = test_case
-  tv = total_variance(edges, signal)
+  tv = total_variation(edges, signal)
   assert_equal(tv, expected_tv)
 
-def test_total_variance():
+def test_total_variation():
   # TODO: add some real data test cases, preferably in fixture file form
   TEST_CASES = [
     ([(0,1), (0,2)], [0.1,0.1,0.1], 0),

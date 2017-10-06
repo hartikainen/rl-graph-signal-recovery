@@ -16,7 +16,7 @@ from gym import Env
 from gym.spaces import Discrete, Tuple, Box
 from gym.utils import colorize
 from algorithms.recovery import sparse_label_propagation
-from graph_functions import total_variance, nmse
+from graph_functions import total_variation, nmse
 from utils import draw_geometrically
 from visualization import draw_partitioned_graph
 import generate_appm
@@ -142,7 +142,7 @@ class GraphSamplingEnv(Env):
            for idx in range(self.graph.number_of_nodes())]
 
       error = nmse(x, x_hat)
-      tv = total_variance(self.graph.edges(), x_hat)
+      tv = total_variation(self.graph.edges(), x_hat)
       reward = error + lambda_ * tv
 
     num_samples = len(self.sampling_set)

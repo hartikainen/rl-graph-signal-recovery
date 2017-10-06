@@ -17,7 +17,7 @@ from gym.utils import colorize, seeding
 
 from algorithms.recovery import sparse_label_propagation
 from envs import GraphSamplingEnv
-from graph_functions import total_variance, nmse, slp_maximum_error
+from graph_functions import total_variation, nmse, slp_maximum_error
 from utils import draw_geometrically
 from visualization import draw_partitioned_graph
 import generate_appm

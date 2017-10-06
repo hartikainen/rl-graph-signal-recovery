@@ -1,6 +1,6 @@
 import numpy as np
 
-def total_variance(edges, signal):
+def total_variation(edges, signal):
   tv = np.sum(np.absolute([
     signal[i] - signal[j] for i,j in edges
   ]))
