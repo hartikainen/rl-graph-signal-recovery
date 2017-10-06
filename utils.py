@@ -65,5 +65,10 @@ def load_pickle(filepath):
     data = pickle.load(f)
   return data
 
+def load_baselines_tabular(filepath):
+  with open(filepath, "r") as f:
+    data = [json.loads(row) for row in f]
+  return data
+
 def draw_geometrically(low, high):
   return np.power(10, np.random.uniform(np.log10(low), np.log10(high)))

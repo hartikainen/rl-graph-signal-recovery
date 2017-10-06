@@ -110,9 +110,9 @@ def plot_agent_history(data):
   steps, nmses, rewards, exploration_props = [], [], [], []
   for datum in data:
     steps.append(datum["steps"])
-    rewards.append(datum["reward"])
     nmses.append(datum["nmse"])
-    exploration_props.append(datum["exploration_prop"])
+    rewards.append(datum["mean episode reward"])
+    exploration_props.append(datum["% time spent exploring"])
 
   fig = plt.figure(1)
   for i, (y_data, name) in enumerate(zip([steps, nmses, rewards, exploration_props],
