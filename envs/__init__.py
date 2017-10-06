@@ -1,2 +1,3 @@
 from .graph_sampling_env import GraphSamplingEnv
 from .fixed_graph_sampling_env import FixedGraphSamplingEnv
+from .simple_three_cluster_env import SimpleThreeClusterEnv

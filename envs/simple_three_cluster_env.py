@@ -32,7 +32,7 @@ class SimpleThreeClusterEnv(GraphSamplingEnv):
     'render.modes': ('human',),
   }
 
-  def __init__(self, max_samples=10, render_depth=2, fixed_graph=True):
+  def __init__(self, max_samples=3, render_depth=2, fixed_graph=True):
     self.graph = None
     self._fixed_graph = fixed_graph
 
@@ -40,13 +40,14 @@ class SimpleThreeClusterEnv(GraphSamplingEnv):
     num_nodes = self.graph.number_of_nodes()
     self.sampling_set = set()
 
-    # actions: { 0: sample, 1: move }
-    self.action_space = Discrete(2)
+    # actions: { 0: sample, 1: next edge 2: next node }
+    self.action_space = Discrete(3)
 
-    self.observation_space = Discrete(1)
+    self.observation_space = Box(0, 8, (27,))
     x = [self.graph.node[idx]['value'] for idx in range(num_nodes)]
     self.slp_maximum_error = slp_maximum_error(x)
 
+    self._current_edge_idx = 0
     self._current_node = 0
     self._clustering_coefficients = None
     self._max_samples = max_samples
@@ -82,22 +83,37 @@ class SimpleThreeClusterEnv(GraphSamplingEnv):
     self.graph.graph['partition'] = [{0, 1, 2}, {3, 4, 5}, {6, 7, 8}]
 
   def _get_observation(self):
-    # TODO: implement
-    observation = None
+    observation = np.zeros((self.graph.number_of_nodes(), 3))
+    observation[self._current_node, 0] = 1.
+    observation[self._current_node, 2] = self._current_edge_idx
+    for node in self.sampling_set:
+      observation[node, 1] = 1.
+
+    observation = np.reshape(observation, (-1))
     return observation
 
   def _get_next_node(self):
-    # TODO: implement
     neighbors = self.graph.neighbors(self._current_node)
-    return np.random.choice(neighbors)
+    return neighbors[self._current_edge_idx]
 
   def _do_action(self, action):
-    # actions: { 0: sample, 1: move }
+    # actions: { 0: sample, 1: next edge 2: next node }
     if action == 0:
       self.sampling_set.add(self._current_node)
-      self._randomize_position()
     elif action == 1:
+      self._current_edge_idx = ((self._current_edge_idx + 1)
+                                % self.graph.degree(self._current_node))
+    elif action == 2:
       self._current_node = self._get_next_node()
+      self._current_edge_idx = 0
+
+  def _reward(self):
+    x_hat = sparse_label_propagation(self.graph, list(self.sampling_set))
+    x = [self.graph.node[idx]['value']
+         for idx in range(self.graph.number_of_nodes())]
+    error = nmse(x, x_hat)
+    reward = (self.slp_maximum_error - error) / self.slp_maximum_error
+    return reward
 
   def _step(self, action):
     self._validate_action(action)
@@ -111,8 +127,7 @@ class SimpleThreeClusterEnv(GraphSamplingEnv):
             or num_samples >= self.graph.number_of_nodes())
 
     if done:
-      current_nmse = self.get_current_nmse()
-      reward = 1.0/current_nmse
+      reward = self._reward()
 
     return observation, reward, done, {}
 
