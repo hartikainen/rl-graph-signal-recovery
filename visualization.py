@@ -14,10 +14,15 @@ def draw_partitioned_graph(g):
     for node in partition
   }
 
+  labels = {idx: g.node[idx]['value'] for idx in g}
   pos = community_layout(g, partition_index)
+  node_list = list(partition_index.keys())
+  node_color = [partition_index[key] for key in node_list]
   nx.draw(g,
           pos,
-          node_color=list(partition_index.values()),
+          nodelist=node_list,
+          node_color=node_color,
+          labels=labels,
           node_size=20,
           edge_color='#99ccff',
           width=0.5)
