@@ -15,7 +15,7 @@ def get_uniform_signal(size):
   return np.random.uniform(0, 1, [size])
 
 def get_integer_signal(size):
-  return np.random.random_integers(0, size, [size])
+  return np.random.random_integers(1, size * 10, [size])
 
 SIGNAL_GENERATORS = {
   'uniform': get_uniform_signal,
@@ -135,8 +135,6 @@ def main(args):
 
   if visualize:
     draw_partitioned_graph(appm)
-
-  appm = nx.convert_node_labels_to_integers(appm)
 
   if out_path is not None:
     if out_path.strip(".").strip("/").split("/")[0] == "data":
