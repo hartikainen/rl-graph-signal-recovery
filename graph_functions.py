@@ -29,6 +29,8 @@ def normalized_mean_squared_error(x, x_hat):
   return error
 
 def slp_maximum_error(x):
+  """Naively approximates maximum slp error for given signal.
+  """
   if len(x) == 0: return 0
   maximally_different_x = x.copy()
   for index, element in enumerate(x):
