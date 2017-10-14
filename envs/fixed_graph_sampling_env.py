@@ -105,6 +105,7 @@ class FixedGraphSamplingEnv(GraphSamplingEnv):
 
   def _step(self, action):
     self._validate_action(action)
+    self._do_action(action)
     observation = self._get_observation()
 
     num_samples = len(self.sampling_set)
@@ -115,8 +116,6 @@ class FixedGraphSamplingEnv(GraphSamplingEnv):
 
     if done:
       reward = self._reward()
-
-    self._do_action(action)
 
     return observation, reward, done, {}
 
