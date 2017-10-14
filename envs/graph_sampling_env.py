@@ -64,9 +64,6 @@ class GraphSamplingEnv(Env):
     # flattened adj. matrix upper triangle + 4x vector of length num_nodes
     observation_length = sum(range(self.num_nodes + 1)) + 4 * self.num_nodes
     self.observation_space = Box(0, 1, observation_length)
-    x = [self.graph.node[idx]['value']
-         for idx in range(self.num_nodes)]
-    self.slp_maximum_error = slp_maximum_error(x)
 
   def _generate_new_graph(self):
     graph_args = generate_graph_args()
@@ -92,6 +89,9 @@ class GraphSamplingEnv(Env):
       adjacency_matrix[np.triu_indices_from(adjacency_matrix)]))
     self._clustering_coefficient_vector = np.array(
         [self._clustering_coefficients[i] for i in range(self.num_nodes)])
+    x = [self.graph.node[idx]['value']
+         for idx in range(self.num_nodes)]
+    self.slp_maximum_error = slp_maximum_error(x)
     return self._get_observation()
 
   def _validate_action(self, action):
