@@ -1,20 +1,8 @@
 """Reinforcement learning environment presenting the graph sampling problem
 """
 import logging
-import random
 
-import numpy as np
-import networkx as nx
-import pygame
-from gym import Env
-from gym.spaces import Discrete, Tuple, Box, MultiBinary
-from gym.utils import colorize, seeding
-
-from algorithms.recovery import sparse_label_propagation
 from envs import GraphSamplingEnv
-from graph_functions import total_variation, nmse, slp_maximum_error
-from utils import draw_geometrically
-from visualization import draw_partitioned_graph
 import generate_appm
 
 
@@ -45,6 +33,7 @@ class FixedGraphSamplingEnv(GraphSamplingEnv):
   def __init__(self, max_samples=3, render_depth=2, fixed_graph=True):
     self.graph = None
     self._fixed_graph = fixed_graph
+    self._screen = None
     super().__init__(max_samples, render_depth)
 
   def _generate_new_graph(self):
