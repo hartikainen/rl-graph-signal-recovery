@@ -28,7 +28,8 @@ def generate_graph_args():
     "visualize": False,
     "cull_disconnected": False,
     "connect_disconnected": True,
-    "generator_type": "uniform"
+    "generator_type": "uniform",
+    "shuffle_labels": False
   }
   return graph_args
 

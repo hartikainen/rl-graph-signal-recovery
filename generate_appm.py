@@ -75,15 +75,26 @@ def parse_args():
                       help="Use to leave nodes that are not connected to the"
                            " main graph")
 
-  parser.set_defaults(cull_disconnected=True)
-  parser.set_defaults(connect_disconnected=True)
-
   parser.add_argument("--generator_type",
                       type=str,
                       default="uniform",
                       help="Type of signal generator to use for cluster"
                            " values. Choose from"
                            " {}".format(list(SIGNAL_GENERATORS.keys())))
+
+  parser.add_argument("--shuffle_labels",
+                      action="store_true",
+                      help="Relabel nodes with random integer labels from 0 to"
+                            " number of nodes.")
+
+  parser.add_argument("--no_shuffle_labels",
+                      action="store_false",
+                      help="Don't relabel nodes with random integer labels"
+                           "from 0 to  number of nodes.")
+
+  parser.set_defaults(cull_disconnected=True)
+  parser.set_defaults(connect_disconnected=True)
+  parser.set_defaults(shuffle_labels=False)
 
   args = vars(parser.parse_args())
   return args
@@ -119,6 +130,7 @@ def main(args):
 
   cull_disconnected = args['cull_disconnected']
   connect_disconnected = args['connect_disconnected']
+  shuffle_labels = args['shuffle_labels']
 
   appm = nx.random_partition_graph(sizes, p_in, p_out)
   signal_generator = SIGNAL_GENERATORS[generator_type]
@@ -132,6 +144,12 @@ def main(args):
   if connect_disconnected:
     connect_disconnected_nodes(appm)
     appm = nx.relabel.convert_node_labels_to_integers(appm, 0)
+
+  if shuffle_labels:
+    random_labels = list(range(appm.number_of_nodes()))
+    np.random.shuffle(random_labels)
+    mapping = {node: label for node, label in zip(appm.nodes(), random_labels)}
+    appm = nx.relabel_nodes(appm, mapping, copy=True)
 
   if visualize:
     draw_partitioned_graph(appm)
