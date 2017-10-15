@@ -20,7 +20,7 @@ def custom_incidence_matrix(graph):
   num_nodes = graph.number_of_nodes()
   D = np.zeros((num_edges, num_nodes))
   for i, (start, end) in enumerate(graph.edges()):
-    weight = graph.edge[start][end].get('weight', 1)
+    weight = graph.get_edge_data(start, end).get('weight', 1)
     D[i, start] = -1 * weight
     D[i, end] = 1 * weight
   return sparse.csr_matrix(D)

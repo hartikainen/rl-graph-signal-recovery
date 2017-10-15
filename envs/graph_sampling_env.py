@@ -99,7 +99,7 @@ class GraphSamplingEnv(Env):
       raise ValueError("{} ({}) invalid".format(action, type(action)))
 
   def _get_next_node(self):
-    neighbors = self.graph.neighbors(self._current_node)
+    neighbors = list(self.graph.neighbors(self._current_node))
     return neighbors[self._current_edge_idx]
 
   def _get_observation(self):
