@@ -14,8 +14,6 @@ from utils import (
   TIMESTAMP_FORMAT, dump_pickle
 )
 
-
-
 def parse_args():
   parser = argparse.ArgumentParser("SimpleThreeClusterEnv testbed")
   parser.add_argument('--step',
@@ -28,22 +26,21 @@ def parse_args():
   return vars(args)
 
 def run(args):
-  M = 3
-  env = SimpleThreeClusterEnv(max_samples=M)
+  M = 5
+  env = GraphSamplingEnv(max_samples=M)
 
   num_train_graphs = 10000
 
   agent = BaseAgent(env=env)
   now = datetime.now()
-  results_path = f"./results/fixed_env/{now.strftime(TIMESTAMP_FORMAT)}"
-  with logger.session(results_path):
-    agent.learn(num_train_graphs)
+  logger.configure(dir=f"./results/fixed_env/{now.strftime(TIMESTAMP_FORMAT)}")
+  agent.learn(num_train_graphs)
   agent.test()
 
 def visualize(args):
   now = datetime.now()
   today_str = now.strftime(TIMESTAMP_FORMAT.split("-")[0])
-  runs_today = glob.glob(f"./results/fixed_env/{today_str}-*")
+  runs_today = glob.glob(f"./results/fixed_env/*")
   latest_run = sorted(runs_today)[-1]
   filepath = f"{latest_run}/progress.json"
 

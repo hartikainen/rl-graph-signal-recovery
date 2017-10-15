@@ -12,6 +12,7 @@ from algorithms.recovery import sparse_label_propagation
 from graph_functions import nmse
 from utils import TIMESTAMP_FORMAT, dump_pickle
 from visualization import draw_partitioned_graph
+from envs import GraphSamplingEnv, SimpleThreeClusterEnv
 
 def model_fn(inpt, num_actions, scope, reuse=False):
     """This model takes as input an observation and returns values of all actions."""
@@ -25,7 +26,7 @@ class BaseAgent(object):
   def __init__(self, env):
     self.env = env
     self._build_train()
-    self.session = tf_util.make_session(8)
+    self.session = tf_util.make_session(1)
 
   def _observation_ph_generator(self, name):
     env = self.env
@@ -56,14 +57,13 @@ class BaseAgent(object):
     self.debug = debug
 
   def learn(self, num_train_graphs=10000):
-    env = self.env
-
     act = self.act
     train = self.train
     update_target = self.update_target
 
     results = []
 
+    env = self.env
     with self.session.as_default():
       # Create the replay buffer
       replay_buffer = ReplayBuffer(50000)
@@ -95,6 +95,8 @@ class BaseAgent(object):
           episode_rewards[-1] += reward
 
           if done:
+            observation = env.reset()
+
             nmse = env.get_current_nmse()
             if len(episode_rewards) % 10 == 0:
               logger.record_tabular("steps", t)
@@ -106,8 +108,6 @@ class BaseAgent(object):
               logger.record_tabular("% time spent exploring",
                                     int(100 * exploration.value(t)))
               logger.dump_tabular()
-
-            observation = env.reset()
 
             steps = t - prev_steps
             results.append({
