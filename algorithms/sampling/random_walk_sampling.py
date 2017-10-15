@@ -21,9 +21,9 @@ class RandomWalkSampling(GraphSamplingAlgorithm):
     sampling_set = set()
 
     while len(sampling_set) < M:
-      node = choice(self.graph.nodes())
+      node = choice(list(self.graph.nodes()))
       for l in range(L-1):
-        neighbors = self.graph.neighbors(node)
+        neighbors = list(self.graph.neighbors(node))
         node = choice(neighbors)
 
       sampling_set.add(node)

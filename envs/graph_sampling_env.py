@@ -162,7 +162,8 @@ class GraphSamplingEnv(Env):
     graph = self.graph
     sampling_set = self.sampling_set
 
-    x = [graph.node[i]['value'] for i in sorted(graph.nodes_iter())]
+    x = [self.graph.node[idx]['value']
+         for idx in range(self.graph.number_of_nodes())]
     x_hat = sparse_label_propagation(graph, list(sampling_set))
 
     return nmse(x, x_hat)
