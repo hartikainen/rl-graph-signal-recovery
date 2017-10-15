@@ -3,6 +3,7 @@ from itertools import combinations
 import numpy as np
 
 from algorithms.recovery import sparse_label_propagation
+import sampling
 
 
 def total_variation(edges, signal):
@@ -54,5 +55,13 @@ def slp_minimum_error(graph, sampling_set_size):
     errors.append(error)
   return min(errors)
 
+def random_walk_error(sampling_args):
+  graph = sampling_args['graph']
+  samples = sampling.main(sampling_args)['sampling_set']
+  x_hat = sparse_label_propagation(graph, list(samples))
+  x = [graph.node[idx]['value']
+       for idx in range(graph.number_of_nodes())]
+  error = normalized_mean_squared_error(x, x_hat)
+  return error
 
 nmse = normalized_mean_squared_error
