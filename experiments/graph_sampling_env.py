@@ -69,7 +69,6 @@ def run(args):
                     exploration_final_prob=args["exploration_final_prob"],
                     random_walk_sampling_args=SAMPLING_ARGS)
   now = datetime.now()
-  log_formats = ['stdout']
   logger.configure(dir=LOGDIR + f"{now.strftime(TIMESTAMP_FORMAT)}")
   agent.learn()
   agent.test()
