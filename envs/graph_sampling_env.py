@@ -139,7 +139,6 @@ class GraphSamplingEnv(Env):
     error = nmse(x, x_hat)
     self.error = error
     reward = (self.slp_maximum_error - error) / self.slp_maximum_error
-    reward += 0.1 * 1.0 / self._num_actions
     return reward
 
   def _step(self, action):
