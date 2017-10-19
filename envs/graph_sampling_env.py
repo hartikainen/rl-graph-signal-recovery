@@ -205,8 +205,8 @@ class GraphSamplingEnv(Env):
 
     edge_color = []
     edge_list = []
-    edge_to = self.graph.neighbors(
-        self._current_node)[self._current_edge_idx]
+    neighbors = list(self.graph.neighbors(self._current_node))
+    edge_to = neighbors[self._current_edge_idx]
     for edge in subgraph.edges():
       edge_list.append(edge)
       if (edge_to in edge and self._current_node in edge):
