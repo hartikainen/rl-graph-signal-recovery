@@ -21,21 +21,18 @@ from utils import draw_geometrically
 from visualization import draw_partitioned_graph
 import generate_appm
 
-
-def generate_graph_args():
-  graph_args = {
-    "generator_type": "uniform",
-    "sizes": [4, 4, 4],
-    "p_in": 0.5,
-    "p_out": 0.1,
-    "out_path": None,
-    "visualize": False,
-    "cull_disconnected": False,
-    "connect_disconnected": True,
-    "generator_type": "uniform",
-    "shuffle_labels": True
-  }
-  return graph_args
+DEFAULT_GRAPH_ARGS = {
+  "generator_type": "uniform",
+  "sizes": [5,10,15],
+  "p_in": 0.5,
+  "p_out": 0.1,
+  "out_path": None,
+  "visualize": False,
+  "cull_disconnected": False,
+  "connect_disconnected": True,
+  "generator_type": "uniform",
+  "shuffle_labels": True
+}
 
 class GraphSamplingEnv(Env):
 
@@ -43,7 +40,8 @@ class GraphSamplingEnv(Env):
     'render.modes': ('human',),
   }
 
-  def __init__(self, max_samples=3, render_depth=3):
+  def __init__(self, max_samples=3, render_depth=3, graph_args=None):
+    self.graph_args = {**DEFAULT_GRAPH_ARGS, **(graph_args or {})}
     self._generate_new_graph()
     self.sampling_set = set()
 
@@ -63,8 +61,7 @@ class GraphSamplingEnv(Env):
     self.observation_space = Box(0, 1, observation_length)
 
   def _generate_new_graph(self):
-    graph_args = generate_graph_args()
-    graph = generate_appm.main(graph_args)
+    graph = generate_appm.main(self.graph_args)
     self.graph = graph
 
   def _randomize_position(self):

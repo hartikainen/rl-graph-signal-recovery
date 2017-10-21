@@ -167,7 +167,7 @@ class PPOAgent(object):
 
   def learn(self):
     """Adapted from baselines/ppo1/pposgd_simple.py"""
-    env = GraphSamplingEnv()
+    env = self._env
     with self._session as sess:
       ob_space = env.observation_space
       ac_space = env.action_space

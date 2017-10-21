@@ -1,9 +1,15 @@
-from envs import GraphSamplingEnv
 from gym.spaces import Discrete
 
+from envs import GraphSamplingEnv
+from algorithms.recovery import sparse_label_propagation
+from graph_functions import (
+  total_variation,
+  nmse,
+)
+
 class SimpleActionsGraphSamplingEnv(GraphSamplingEnv):
-  def __init__(self, max_samples=3):
-    super().__init__(max_samples)
+  def __init__(self, max_samples=3, graph_args=None):
+    super().__init__(max_samples, graph_args=graph_args)
     self.action_space = Discrete(self.num_nodes)
 
   def _reward(self):

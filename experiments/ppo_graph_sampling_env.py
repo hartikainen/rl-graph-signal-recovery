@@ -37,8 +37,9 @@ def parse_args():
   return vars(args)
 
 def run(args):
-  M = 3
-  env = SimpleActionsGraphSamplingEnv(max_samples=M)
+  M = 10
+  graph_args = { "sizes": [10,20,30,40] }
+  env = SimpleActionsGraphSamplingEnv(max_samples=M, graph_args=graph_args)
 
   agent = PPOAgent(env=env,
                    random_walk_sampling_args=SAMPLING_ARGS)
