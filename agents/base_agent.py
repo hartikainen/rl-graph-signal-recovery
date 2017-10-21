@@ -134,7 +134,8 @@ class BaseAgent(object):
             logger.record_tabular("mean episode error",
                                   round(np.mean(episode_errors[-101:-1]), 3))
             logger.record_tabular("nmse", nmse)
-            logger.record_tabular("sampling set", list(env.sampling_set))
+            logger.record_tabular("sampling set",
+                [int(v) for v in env.sampling_set])
             logger.record_tabular("% time spent exploring",
                                   int(100 * exploration.value(t)))
             if self._random_walk_sampling_args is not None:
