@@ -1,8 +1,5 @@
 """Reinforcement learning environment presenting the graph sampling problem
 """
-import matplotlib
-matplotlib.use('Agg')
-
 import logging
 import random
 import pygame
@@ -16,7 +13,10 @@ from gym.spaces import Discrete, Tuple, Box
 from gym.utils import colorize
 
 from algorithms.recovery import sparse_label_propagation
-from graph_functions import total_variation, nmse, slp_maximum_error
+from graph_functions import (
+  total_variation,
+  nmse,
+)
 from utils import draw_geometrically
 from visualization import draw_partitioned_graph
 import generate_appm
@@ -36,9 +36,6 @@ def generate_graph_args():
     "shuffle_labels": True
   }
   return graph_args
-
-
-logger = logging.getLogger(__name__)
 
 class GraphSamplingEnv(Env):
 
@@ -62,8 +59,7 @@ class GraphSamplingEnv(Env):
 
     self.reset()
 
-    # flattened adj. matrix upper triangle + 4x vector of length num_nodes
-    observation_length = sum(range(self.num_nodes + 1)) + 4 * self.num_nodes
+    observation_length = self.num_nodes ** 2 + 5 * self.num_nodes
     self.observation_space = Box(0, 1, observation_length)
 
   def _generate_new_graph(self):
@@ -85,14 +81,16 @@ class GraphSamplingEnv(Env):
     self._current_edge_idx = 0
     self._num_actions = 0
     self.error = 0
-    adjacency_matrix = nx.adjacency_matrix(self.graph).todense()
-    self._adjacency_vector = np.squeeze(np.array(
-      adjacency_matrix[np.triu_indices_from(adjacency_matrix)]))
-    self._clustering_coefficient_vector = np.array(
-        [self._clustering_coefficients[i] for i in range(self.num_nodes)])
+    self._adjacency_matrix = np.array(nx.adjacency_matrix(
+        self.graph, range(self.num_nodes)).todense())
+    self._degree_vector = np.reshape(np.array(
+        [self.graph.degree(i) for i in range(self.num_nodes)],
+        dtype=np.float32), (-1, 1))
+    self._clustering_coefficient_vector = np.reshape(np.array(
+        [self._clustering_coefficients[i] for i in range(self.num_nodes)]),
+        (-1, 1))
     x = [self.graph.node[idx]['value']
          for idx in range(self.num_nodes)]
-    self.slp_maximum_error = slp_maximum_error(x)
     return self._get_observation()
 
   def _validate_action(self, action):
@@ -114,10 +112,11 @@ class GraphSamplingEnv(Env):
     current_neighbor = self._get_next_node()
     state_descriptor[current_neighbor, 2] = 1.
 
-    state_descriptor = np.reshape(state_descriptor, (-1))
-    observation = np.hstack((self._adjacency_vector,
-                             self._clustering_coefficient_vector,
-                             state_descriptor))
+    observation = np.reshape(
+        np.concatenate((self._adjacency_matrix,
+                        self._degree_vector,
+                        self._clustering_coefficient_vector,
+                        state_descriptor), 1), (-1))
     return observation
 
   def _do_action(self, action):
@@ -137,8 +136,12 @@ class GraphSamplingEnv(Env):
     x = [self.graph.node[idx]['value']
          for idx in range(self.graph.number_of_nodes())]
     error = nmse(x, x_hat)
+    tv = total_variation(self.graph.edges(), x)
     self.error = error
-    reward = (self.slp_maximum_error - error) / self.slp_maximum_error
+
+    # this + all nodes in action seems best
+    reward = -error - 0.1 * tv
+
     return reward
 
   def _step(self, action):
