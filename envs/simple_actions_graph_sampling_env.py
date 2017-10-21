@@ -4,18 +4,16 @@ from gym.spaces import Discrete
 class SimpleActionsGraphSamplingEnv(GraphSamplingEnv):
   def __init__(self, max_samples=3):
     super().__init__(max_samples)
-    self.action_space = Discrete(12)
+    self.action_space = Discrete(self.num_nodes)
 
   def _reward(self):
     x_hat = sparse_label_propagation(self.graph, list(self.sampling_set))
     x = [self.graph.node[idx]['value']
          for idx in range(self.graph.number_of_nodes())]
     error = nmse(x, x_hat)
-    tv = total_variation(self.graph.edges(), x)
     self.error = error
 
-    # this + all nodes in action seems best
-    reward = -error - 0.1 * tv
+    reward = -error
 
     return reward
 
