@@ -97,6 +97,22 @@ def _position_nodes(g, partition, **kwargs):
 
   return pos
 
+def plot_ppo_agent_history(data):
+  steps, rewards = [], []
+  for datum in data:
+    steps.append(datum["EpisodesSoFar"])
+    rewards.append(datum["EpRewMean"])
+
+  fig = plt.figure(1)
+  for i, (y_data, name) in enumerate(zip([steps, rewards],
+                                         ["steps", "rewards"])):
+    plt.subplot(2,1,i+1)
+    plt.plot(range(len(data)), y_data)
+    plt.xlabel("episode")
+    plt.ylabel(name)
+
+  plt.show()
+
 def plot_agent_history(data):
   """Plot agent history from data argument
 

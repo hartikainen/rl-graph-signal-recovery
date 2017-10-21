@@ -8,7 +8,7 @@ from datetime import datetime
 import generate_appm
 from agents import PPOAgent
 from envs import SimpleActionsGraphSamplingEnv
-from visualization import plot_agent_history
+from visualization import plot_agent_history, plot_ppo_agent_history
 from utils import (
   load_pickle, load_baselines_tabular,
   TIMESTAMP_FORMAT, dump_pickle
@@ -56,7 +56,7 @@ def visualize(args):
 
   print(f"visualizing {filepath}")
   data = load_baselines_tabular(filepath)
-  plot_agent_history(data)
+  plot_ppo_agent_history(data)
 
 def main(args):
   if args["step"] == "run":
