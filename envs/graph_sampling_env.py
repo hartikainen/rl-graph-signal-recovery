@@ -137,7 +137,7 @@ class GraphSamplingEnv(Env):
     self.error = error
 
     # this + all nodes in action seems best
-    reward = -error - 0.1 * tv
+    reward = 1.0 - error
 
     return reward
 
