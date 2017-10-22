@@ -1,3 +1,4 @@
+import os
 from collections import deque
 import time
 
@@ -15,8 +16,35 @@ from baselines.common.mpi_moments import mpi_moments
 from mpi4py import MPI
 
 from envs import GraphSamplingEnv
-from utils import TIMESTAMP_FORMAT
+from utils import TIMESTAMP_FORMAT, dump_pickle, load_pickle
 from graph_functions import random_walk_error
+
+def get_model_dir(save_path, num_episodes):
+  dir_name = f"model-{num_episodes}"
+  model_dir = os.path.join(save_path, dir_name, "saved")
+  return model_dir
+
+def get_state_dir(save_path):
+  return os.path.join(save_path, 'training_state.pkl')
+
+def load_baselines_model(save_path):
+  state_path = get_state_dir(save_path)
+
+  state = load_pickle(state_path)
+
+  model_path = get_model_dir(save_path, state["num_episodes"])
+  saver = tf.train.Saver()
+  saver.restore(tf.get_default_session(), model_path)
+
+def save_baselines_model(save_path, state):
+  model_path = get_model_dir(save_path, state["num_episodes"])
+
+  os.makedirs(os.path.dirname(model_path), exist_ok=True)
+  saver = tf.train.Saver()
+  saver.save(tf.get_default_session(), model_path)
+
+  state_path = get_state_dir(save_path)
+  dump_pickle(state, state_path)
 
 def flatten_lists(listoflists):
     return [el for list_ in listoflists for el in list_]
@@ -128,7 +156,7 @@ def traj_segment_generator(pi, env, horizon, stochastic, rw_sampling_args):
 class PPOAgent(object):
   def __init__(self,
                env,
-               max_timesteps=1000000,
+               max_timesteps=1e7,
                max_episodes=0,
                max_iters=0,
                max_seconds=0,
@@ -144,6 +172,9 @@ class PPOAgent(object):
                lambda_=0.95,
                schedule='linear',
                logdir='results/ppo_agent',
+               save_path=None,
+               load_model=False,
+               save_freq=-1,
                random_walk_sampling_args=None):
     self._env = env
     self._max_timesteps = max_timesteps
@@ -162,6 +193,9 @@ class PPOAgent(object):
     self._lambda = lambda_
     self._schedule = schedule
     self._random_walk_sampling_args = random_walk_sampling_args
+    self._load_model = load_model
+    self._save_path = save_path
+    self._save_freq = save_freq
 
     self._session = tf_util.single_threaded_session()
 
@@ -225,9 +259,17 @@ class PPOAgent(object):
           pi, env, self._timesteps_per_batch, stochastic=True,
           rw_sampling_args=self._random_walk_sampling_args)
 
-      episodes_so_far = 0
-      timesteps_so_far = 0
-      iters_so_far = 0
+      if self._load_model and self._save_path is not None:
+        state = load_baselines_model(self._save_path)
+
+        episodes_so_far = state.get("num_episodes", 0)
+        timesteps_so_far = state.get("num_timesteps", 0)
+        iters_so_far = state.get("num_iters", 0)
+      else:
+        episodes_so_far = 0
+        timesteps_so_far = 0
+        iters_so_far = 0
+
       tstart = time.time()
 
       lenbuffer = deque(maxlen=100)
@@ -236,21 +278,30 @@ class PPOAgent(object):
       rwerrorbuffer = deque(maxlen=100)
       errordiffbuffer = deque(maxlen=100)
 
-      assert (sum([self._max_iters>0,
-                  self._max_timesteps>0,
-                  self._max_episodes>0,
-                  self._max_seconds>0]) == 1,
-                  "Only one time constraint permitted")
+      time_constraint_satisfied = (
+        sum(
+          [self._max_iters>0,
+           self._max_timesteps>0,
+           self._max_episodes>0,
+           self._max_seconds>0]
+        ) == 1)
+      assert time_constraint_satisfied, "Only one time constraint permitted"
       while True:
         if self._callback: self_callback(locals(), globals())
-        if self._max_timesteps and timesteps_so_far >= self._max_timesteps:
+
+        end = (
+          (self._max_timesteps and timesteps_so_far >= self._max_timesteps)
+          or (self._max_episodes and episodes_so_far >= self._max_episodes)
+          or (self._max_iters and iters_so_far >= self._max_iters)
+          or (self._max_seconds and time.time() - tstart >= self._max_seconds))
+
+        if end:
+          save_baselines_model(self._save_path, { 'num_episodes': episodes_so_far })
           break
-        elif self._max_episodes and episodes_so_far >= self._max_episodes:
-          break
-        elif self._max_iters and iters_so_far >= self._max_iters:
-          break
-        elif self._max_seconds and time.time() - tstart >= self._max_seconds:
-          break
+        elif (self._save_path is not None
+              and self._save_freq > 0
+              and episodes_so_far % self._save_freq == 0):
+          save_baselines_model(self._save_path, { 'num_episodes': episodes_so_far })
 
         if self._schedule == 'constant':
           cur_lrmult = 1.0

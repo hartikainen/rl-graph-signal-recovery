@@ -101,11 +101,11 @@ def plot_ppo_agent_history(data):
   steps, rewards = [], []
   for datum in data:
     steps.append(datum["EpisodesSoFar"])
-    rewards.append(datum["EpRewMean"])
+    rewards.append(datum["EpErrorDiffMean"])
 
   fig = plt.figure(1)
   for i, (y_data, name) in enumerate(zip([steps, rewards],
-                                         ["steps", "rewards"])):
+                                         ["steps", "reward diff"])):
     plt.subplot(2,1,i+1)
     plt.plot(range(len(data)), y_data)
     plt.xlabel("episode")
