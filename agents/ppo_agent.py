@@ -128,7 +128,7 @@ def traj_segment_generator(pi, env, horizon, stochastic, rw_sampling_args):
 class PPOAgent(object):
   def __init__(self,
                env,
-               max_timesteps=1000000,
+               max_timesteps=10000000,
                max_episodes=0,
                max_iters=0,
                max_seconds=0,
