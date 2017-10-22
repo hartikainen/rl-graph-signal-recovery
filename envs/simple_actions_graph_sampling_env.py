@@ -22,7 +22,7 @@ class SimpleActionsGraphSamplingEnv(GraphSamplingEnv):
     error = nmse(x, x_hat)
     self.error = error
 
-    reward = -error
+    reward = 1.0 - error
 
     return reward
 
