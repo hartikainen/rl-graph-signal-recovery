@@ -38,6 +38,11 @@ python experiments/ppo_graph_sampling_env.py --step visualize
 
 ## Experiments Contained in the project
 
+The experiments are executed by running the experiment files. Experiments log
+results to subdirectories of `results/` directory. JSON formatted training logs
+are provided for the reinforcement learning. See `visualization.py` for
+examples how to process the logs.
+
 ### experiment1
 `experiments/experiment1.py` contains code to reproduce experiments from
 [Random Walk Sampling for Big Data over
