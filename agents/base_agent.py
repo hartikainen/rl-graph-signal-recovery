@@ -84,7 +84,6 @@ class BaseAgent(object):
     train = self.train
     update_target = self.update_target
 
-    results = []
 
     env = self.env
     with self.session.as_default():
@@ -102,7 +101,6 @@ class BaseAgent(object):
       episode_rw_errors = []
       episode_error_diffs = []
       observation = env.reset()
-      prev_steps = 0
 
       for t in itertools.count():
         # Take action and update exploration to the newest value
@@ -125,8 +123,8 @@ class BaseAgent(object):
             episode_rw_errors.append(rw_error)
             episode_error_diffs.append(rw_error - env.error)
 
-          nmse = env.get_current_nmse()
           if len(episode_rewards) % 10 == 0:
+            nmse = env.get_current_nmse()
             logger.record_tabular("steps", t)
             logger.record_tabular("episodes", len(episode_rewards))
             logger.record_tabular("mean episode reward",
@@ -145,15 +143,6 @@ class BaseAgent(object):
                   round(np.mean(episode_error_diffs[-101:-1]), 3))
             logger.dump_tabular()
 
-          # TODO: Are steps and results used for something?
-          steps = t - prev_steps
-          results.append({
-            "steps": steps,
-            "reward": episode_rewards[-1],
-            "nmse": nmse,
-            "exploration_prop": int(100 * exploration.value(t)),
-          })
-          prev_steps = steps
           observation = env.reset()
 
         # Minimize the Bellman equation error on replay buffer sample batch
