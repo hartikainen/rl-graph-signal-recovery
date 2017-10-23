@@ -117,13 +117,13 @@ class BaseAgent(object):
 
         if done:
           episode_errors.append(env.error)
+          episode_rewards.append(0)
           if self._random_walk_sampling_args is not None:
             sampling_args = self._random_walk_sampling_args
             sampling_args.update({"graph": env.graph})
             rw_error = random_walk_error(sampling_args)
             episode_rw_errors.append(rw_error)
             episode_error_diffs.append(rw_error - env.error)
-            episode_rewards.append(0)
 
           nmse = env.get_current_nmse()
           if len(episode_rewards) % 10 == 0:

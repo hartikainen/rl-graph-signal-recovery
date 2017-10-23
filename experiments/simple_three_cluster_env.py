@@ -29,12 +29,10 @@ def run(args):
   M = 5
   env = GraphSamplingEnv(max_samples=M)
 
-  num_train_graphs = 10000
-
   agent = BaseAgent(env=env)
   now = datetime.now()
   logger.configure(dir=f"./results/fixed_env/{now.strftime(TIMESTAMP_FORMAT)}")
-  agent.learn(num_train_graphs)
+  agent.learn()
   agent.test()
 
 def visualize(args):
