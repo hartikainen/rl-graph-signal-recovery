@@ -7,7 +7,10 @@ evaluation of rl algorithms for the sampling problem are provided.
 
 ## Installation and Dependencies
 
-* Python 3.6
+The project requires Python 3.6
+
+Python package dependencies:
+
 * OpenAI Gym
 * OpenAI Baselines
 * Numpy
@@ -16,7 +19,7 @@ evaluation of rl algorithms for the sampling problem are provided.
 * Matplotlib
 * Pygame
 
-All dependencies can be installed by running:
+All package dependencies can be installed by running:
 
 ``` bash
 pip install -r requirements.txt
