@@ -5,6 +5,60 @@ walk a graph and sample nodes. Sparse label propagation is applied to the
 sampled nodes to recover the graph signal. Tools for the training and
 evaluation of rl algorithms for the sampling problem are provided.
 
+## Installation and Dependencies
+
+* Python 3.6
+* OpenAI Gym
+* OpenAI Baselines
+* Numpy
+* TensorFlow 1.3
+* Networkx 2.0
+* Matplotlib
+* Pygame
+
+All dependencies can be installed by running:
+
+``` bash
+pip install -r requirements.txt
+```
+
+## Running Experiments
+
+Reinforcement learning experiments are implemented in files contained in
+`experiments/` directory. The experiment files are executable. Experiments
+support visualization. After training experiment for a while, results of the
+latest experiment can be visualized with:
+
+``` bash
+python experiments/ppo_graph_sampling_env.py --visualize
+```
+
+## Experiments Contained in the project
+
+### experiment1
+`experiments/experiment1.py` contains code to reproduce experiments from
+[Random Walk Sampling for Big Data over
+Networks](https://arxiv.org/abs/1704.04799v1). See end of document for details.
+
+### graph_sampling_env
+`experiments/graph_sampling_env.py` trains deep Q-learning agent in the
+GraphSamplingEnv. Details about the environment design can be found in the next
+section.
+
+### ppo_graph_sampling_env
+`experiments/ppo_graph_sampling_env.py` trains PPO agent in the
+SimpleActionsGraphSamplingEnv. PPO refers to Proximal Policy Optimization. The
+PPO implementation is from [OpenAI
+baselines](https://github.com/openai/baselines). The graph, observations and
+rewards in SimpleActionsGraphSamplingEnv are similar to GraphSamplingEnv.
+Instead of crawling the graph as described in the following section, in
+SimpleActionsGraphSamplingEnv the actions pick nodes directly to the sampling
+set. That means there are as many actions as there are nodes in the graph.
+
+### simple_three_cluster_env
+`experiments/simple_three_cluster_env.py` train deep Q-learning agent in a
+small, fixed graph to check that the actions are compatible with Q-learning.
+
 ## Graph Sampling RL Environment
 Graph sampling is formulated as a reinforcement learning problem by defining an
 agent that is capable of moving along the graph edges and choosing nodes to
