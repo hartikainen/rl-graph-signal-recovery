@@ -33,7 +33,7 @@ support visualization. After training experiment for a while, results of the
 latest experiment can be visualized with:
 
 ``` bash
-python experiments/ppo_graph_sampling_env.py --visualize
+python experiments/ppo_graph_sampling_env.py --step visualize
 ```
 
 ## Experiments Contained in the project
