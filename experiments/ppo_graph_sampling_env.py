@@ -37,11 +37,11 @@ def parse_args():
   return vars(args)
 
 def run(args):
-  M = 10
+  M = 3
   graph_args = {
-    "sizes": [10,20,30,40],
-    "p_in": 3/10,
-    "p_out": 5/100,
+    "sizes": [4, 4, 4],
+    "p_in": 0.5,
+    "p_out": 0.1
   }
   env = SimpleActionsGraphSamplingEnv(max_samples=M, graph_args=graph_args)
 
