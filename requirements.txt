@@ -12,7 +12,7 @@ azure-servicebus==0.20.1
 azure-servicemanagement-legacy==0.20.2
 azure-storage==0.20.3
 git+git://github.com/openai/baselines.git@699919f1cf2527b184f4445a3758a773f333a1ba
-bleach==1.5.0
+bleach==3.1.4
 certifi==2017.7.27.1
 chardet==3.0.4
 cycler==0.10.0
